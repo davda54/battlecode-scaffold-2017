@@ -3,7 +3,13 @@ package BikiniNinjas;
 import battlecode.common.*;
 
 public class ScoutPlayer {
+
+    private static RobotController rc;
+
     public static void run(RobotController rc) throws GameActionException {
+
+        ScoutPlayer.rc = rc;
+
         while (true) {
             try {
                 innerLoop();
@@ -16,7 +22,7 @@ public class ScoutPlayer {
         }
     }
 
-    private static void innerLoop() {
+    private static void innerLoop() throws GameActionException {
 
     }
 }
