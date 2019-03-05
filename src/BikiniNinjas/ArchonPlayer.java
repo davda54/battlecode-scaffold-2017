@@ -10,7 +10,11 @@ public class ArchonPlayer extends AbstractPlayer {
 
     @Override
     protected void initialize() throws GameActionException {
-
+        Direction direction = Utilities.randomDirection();
+        while(!rc.canHireGardener(direction)) {
+            direction = Utilities.randomDirection();
+        }
+        rc.hireGardener(direction);
     }
 
     @Override

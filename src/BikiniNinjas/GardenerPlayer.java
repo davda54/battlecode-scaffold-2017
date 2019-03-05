@@ -10,7 +10,11 @@ public class GardenerPlayer extends AbstractPlayer {
 
     @Override
     protected void initialize() throws GameActionException {
-
+        Direction direction = Utilities.randomDirection();
+        while(!rc.canBuildRobot(RobotType.SCOUT, direction)) {
+            direction = Utilities.randomDirection();
+        }
+        rc.buildRobot(RobotType.SCOUT, direction);
     }
 
     @Override

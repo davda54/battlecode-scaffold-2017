@@ -2,8 +2,8 @@ package BikiniNinjas;
 
 import battlecode.common.*;
 
-public class Utilities {
 
+public class Utilities {
 
     /**
      * Returns a random Direction
