@@ -2,6 +2,9 @@ package BikiniNinjas;
 
 import battlecode.common.*;
 
+import java.util.Random;
+import java.util.stream.Collectors;
+import java.util.Arrays;
 
 public class Utilities {
 
@@ -100,24 +103,33 @@ public class Utilities {
         return (perpendicularDist <= rc.getType().bodyRadius);
     }
 
+    static Direction moveRandomly(RobotController rc, Direction initialDirection) throws GameActionException {
+        Direction direction = initialDirection;
+        float distance = rc.getType().strideRadius;
 
-    /**
-     * Converts a map location to a unique 32-bit integer.
-     *
-     * @param loc map location to convert
-     * @see #intToLocation(int)
-     */
-    public static int locationToInt(MapLocation loc) {
-        return ((int)(loc.x + 0.5f) << 16) | ((int)(loc.y + 0.5f) & 0xFFFF);
+        while(!rc.canMove(direction, distance)) {
+            if(Math.random() > 0.5f) direction = direction.rotateLeftDegrees(45 + (float)Math.random() * 90);
+            else direction = direction.rotateRightDegrees(45 + (float)Math.random() * 90);
+
+            if(rc.canMove(direction, distance)) break;
+
+            direction = direction.rotateRightDegrees(180);
+            if(rc.canMove(direction, distance)) break;
+
+            direction = randomDirection();
+            distance *= 0.95;
+        }
+
+        rc.move(direction);
+        return direction;
     }
 
-    /**
-     * Converts an integer into a map location.
-     *
-     * @param x integer to convert
-     * @see #locationToInt(MapLocation)
-     */
-    public static MapLocation intToLocation(int x) {
-        return new MapLocation((x >> 16), (short) (x & 0xFFFF));
+    private static Random rand = new Random();
+    public static int randInt(int min, int max) {
+        return rand.nextInt((max - min)) + min;
+    }
+
+    public static int randInt(int max) {
+        return rand.nextInt(max);
     }
 }

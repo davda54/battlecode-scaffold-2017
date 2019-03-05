@@ -31,7 +31,7 @@ public class Broadcast {
     }
 
     public MapLocation[] getLocations() {
-        throw new NotImplementedException();
+        return null;
     }
 
     public void takeIn() throws GameActionException {

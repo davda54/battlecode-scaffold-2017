@@ -26,10 +26,7 @@ public class ScoutPlayer extends AbstractPlayer {
         Tuple<Integer, MapLocation> tree = nearestFruitfulTree();
 
         if(tree == null) {
-            while(!rc.canMove(direction)/*rc.getLocation().add(direction, 2*RobotType.SCOUT.strideRadius))*/) {
-                direction = Utilities.randomDirection();
-            }
-            rc.move(direction);
+            direction = Utilities.moveRandomly(rc, direction);
         }
         else if(rc.canInteractWithTree(tree.item1)) {
             rc.shake(tree.item1);
@@ -71,9 +68,5 @@ public class ScoutPlayer extends AbstractPlayer {
 
         if(closestTreeId == -1) return null;
         return new Tuple<>(closestTreeId, fruitfulTrees.get(closestTreeId));
-    }
-
-    private void moveRandomly() {
-
     }
 }
