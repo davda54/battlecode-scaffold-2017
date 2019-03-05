@@ -2,28 +2,19 @@ package BikiniNinjas;
 
 import battlecode.common.*;
 
-public class ArchonPlayer {
+public class ArchonPlayer extends AbstractPlayer {
 
-    private static RobotController rc;
-
-    public static void run(RobotController rc) throws GameActionException {
-
-        ArchonPlayer.rc = rc;
-
-        while (true) {
-            try {
-                innerLoop();
-                Clock.yield();
-
-            } catch (Exception e) {
-                System.out.println("Archon Exception");
-                e.printStackTrace();
-            }
-        }
+    public ArchonPlayer(RobotController rc) {
+        super(rc);
     }
 
-    private static void innerLoop() throws GameActionException {
+    @Override
+    protected void initialize() throws GameActionException {
 
+    }
+
+    @Override
+    protected void step() throws GameActionException {
         // Generate a random direction
         Direction dir = Utilities.randomDirection();
 

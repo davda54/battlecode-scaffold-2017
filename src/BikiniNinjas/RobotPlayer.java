@@ -5,26 +5,28 @@ public strictfp class RobotPlayer {
     /**
      * run() is the method that is called when a robot is instantiated in the Battlecode world.
      * If this method returns, the robot dies!
-    **/
+     **/
     @SuppressWarnings("unused")
     public static void run(RobotController rc) throws GameActionException {
+        getPlayer(rc).run();
+    }
 
+    private static AbstractPlayer getPlayer(RobotController rc) throws GameActionException {
         switch (rc.getType()) {
             case ARCHON:
-                ArchonPlayer.run(rc);
-                break;
+                return new ArchonPlayer(rc);
             case GARDENER:
-                GardenerPlayer.run(rc);
-                break;
-            case SOLDIER:
-                SoldierPlayer.run(rc);
-                break;
+                return new GardenerPlayer(rc);
             case LUMBERJACK:
-                LumberjackPlayer.run(rc);
-                break;
+                return new LumberjackPlayer(rc);
+            case SOLDIER:
+                return new SoldierPlayer(rc);
+            case TANK:
+                return new TankPlayer(rc);
             case SCOUT:
-                ScoutPlayer.run(rc);
-                break;
+                return new ScoutPlayer(rc);
+            default:
+                throw new GameActionException(GameActionExceptionType.CANT_DO_THAT, "no suitable robot type found");
         }
-	}
+    }
 }

@@ -1,10 +1,11 @@
 package BikiniNinjas;
 
-import battlecode.common.*;
+import battlecode.common.GameActionException;
+import battlecode.common.RobotController;
 
-public class ScoutPlayer extends AbstractPlayer {
+public class TankPlayer extends AbstractPlayer {
 
-    public ScoutPlayer(RobotController rc) {
+    public TankPlayer(RobotController rc) {
         super(rc);
     }
 

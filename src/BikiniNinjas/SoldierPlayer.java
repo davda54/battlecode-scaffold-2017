@@ -2,30 +2,19 @@ package BikiniNinjas;
 
 import battlecode.common.*;
 
-public class SoldierPlayer {
+public class SoldierPlayer extends AbstractPlayer {
 
-    private static RobotController rc;
-    private static Team enemy;
-
-    public static void run(RobotController rc) throws GameActionException {
-
-        SoldierPlayer.rc = rc;
-        enemy = rc.getTeam().opponent();
-
-        while (true) {
-            try {
-                innerLoop();
-                Clock.yield();
-
-            } catch (Exception e) {
-                System.out.println("Soldier Exception");
-                e.printStackTrace();
-            }
-        }
+    public SoldierPlayer(RobotController rc) {
+        super(rc);
     }
 
-    private static void innerLoop() throws GameActionException {
+    @Override
+    protected void initialize() throws GameActionException {
 
+    }
+
+    @Override
+    protected void step() throws GameActionException {
         MapLocation myLocation = rc.getLocation();
 
         // See if there are any nearby enemy robots

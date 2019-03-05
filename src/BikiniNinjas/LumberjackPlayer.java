@@ -2,30 +2,19 @@ package BikiniNinjas;
 
 import battlecode.common.*;
 
-public class LumberjackPlayer {
+public class LumberjackPlayer extends AbstractPlayer {
 
-    private static RobotController rc;
-    private static Team enemy;
-
-    public static void run(RobotController rc) throws GameActionException {
-
-        LumberjackPlayer.rc = rc;
-        enemy = rc.getTeam().opponent();
-
-        while (true) {
-            try {
-                innerLoop();
-                Clock.yield();
-
-            } catch (Exception e) {
-                System.out.println("Lumberjack Exception");
-                e.printStackTrace();
-            }
-        }
+    public LumberjackPlayer(RobotController rc) {
+        super(rc);
     }
 
-    private static void innerLoop() throws GameActionException {
+    @Override
+    protected void initialize() throws GameActionException {
 
+    }
+
+    @Override
+    protected void step() throws GameActionException {
         // See if there are any enemy robots within striking range (distance 1 from lumberjack's radius)
         RobotInfo[] robots = rc.senseNearbyRobots(RobotType.LUMBERJACK.bodyRadius+GameConstants.LUMBERJACK_STRIKE_RADIUS, enemy);
 

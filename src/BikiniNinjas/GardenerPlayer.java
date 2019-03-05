@@ -2,28 +2,19 @@ package BikiniNinjas;
 
 import battlecode.common.*;
 
-public class GardenerPlayer {
+public class GardenerPlayer extends AbstractPlayer {
 
-    private static RobotController rc;
-
-    public static void run(RobotController rc) throws GameActionException {
-
-        GardenerPlayer.rc = rc;
-
-        while (true) {
-            try {
-                innerLoop();
-                Clock.yield();
-
-            } catch (Exception e) {
-                System.out.println("Gardener Exception");
-                e.printStackTrace();
-            }
-        }
+    public GardenerPlayer(RobotController rc) {
+        super(rc);
     }
 
-    private static void innerLoop() throws GameActionException {
+    @Override
+    protected void initialize() throws GameActionException {
 
+    }
+
+    @Override
+    protected void step() throws GameActionException {
         // Listen for home archon's location
         int xPos = rc.readBroadcast(0);
         int yPos = rc.readBroadcast(1);
