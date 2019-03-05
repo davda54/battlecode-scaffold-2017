@@ -9,10 +9,12 @@ public abstract class AbstractPlayer {
 
     protected RobotController rc;
     protected Team enemy;
+    protected Broadcast bc;
 
     public AbstractPlayer(RobotController rc) {
         this.rc = rc;
         this.enemy = rc.getTeam().opponent();
+        this.bc = new Broadcast(rc);
     }
 
     public void run() throws GameActionException {
