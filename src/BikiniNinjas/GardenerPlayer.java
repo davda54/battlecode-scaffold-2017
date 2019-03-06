@@ -39,6 +39,7 @@ public class GardenerPlayer extends AbstractPlayer {
         favouriteGardenerLocation = null;
         orbitClockwise = Math.random() > 0.5f;
 
+        treesToBeBorn = new ArrayList<>();
         treeDirections = new ArrayList<>();
         for (int i = 0; i < 6; i++) {
             treeDirections.add(Direction.NORTH.rotateLeftDegrees(i*60));
