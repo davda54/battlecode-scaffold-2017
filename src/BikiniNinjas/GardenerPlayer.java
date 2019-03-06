@@ -176,7 +176,7 @@ public class GardenerPlayer extends AbstractPlayer {
     }
 
     private MapLocation selectFavouriteOrchardLocation() throws GameActionException {
-        ArrayList<MapLocation> orchardLocations = bc.getGardenerLocations();
+        ArrayList<MapLocation> orchardLocations = bc.getOrchardLocations();
         ArrayList<RobotInfo> gardeners = getNearbyGardeners();
 
         for(MapLocation l: orchardLocations) {
@@ -189,7 +189,7 @@ public class GardenerPlayer extends AbstractPlayer {
 
         if(orchardId == -1) return null;
 
-        bc.removeGardenerLocation(orchardId);
+        bc.removeOrchardLocation(orchardId);
         return orchardLocations.get(orchardId);
     }
 
@@ -239,6 +239,6 @@ public class GardenerPlayer extends AbstractPlayer {
             }
         }
 
-        bc.addGardenerLocations(potentialLocations);
+        bc.addOrchardLocations(potentialLocations);
     }
 }

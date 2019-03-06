@@ -7,7 +7,6 @@ import battlecode.common.RobotType;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class Broadcast {
@@ -26,14 +25,12 @@ public class Broadcast {
     // ARCHON, GARDENER, LUMBERJACK, SOLDIER, TANK, SCOUT
     private final int[] COUNTS_BITS = {0, 8, 20, 32, 48, 56, 64};
 
-    private int lastGardenerLocationIdx;
-    private final int GARDENER_LOCATION_OFFSET = 6;
+    private final int ORCHARD_LOCATIONS_OFFSET = 6;
 
 
     public Broadcast(RobotController rc) throws GameActionException {
         this.rc = rc;
         this.lastWriteState = NOT_SET;
-        this.lastGardenerLocationIdx = 0;
     }
 
     public int getCountOf(RobotType type) throws GameActionException {
@@ -50,61 +47,65 @@ public class Broadcast {
         return null;
     }
 
-    public void addGardenerLocations(ArrayList<MapLocation> locations) throws GameActionException {
+    public void addOrchardLocations(ArrayList<MapLocation> locations) throws GameActionException {
 
-        int idx = GARDENER_LOCATION_OFFSET;
-        while(idx < lastGardenerLocationIdx) {
-            MapLocation location = getLocation(idx);
-            idx += 2;
+        int start = ORCHARD_LOCATIONS_OFFSET + 1;
+        int length = rc.readBroadcastInt(ORCHARD_LOCATIONS_OFFSET);
+
+        for(int i = start; i < start + length; i+=2) {
+            MapLocation location = getOrchardLocation(i);
             if (location == null) break; // may be redundant
 
-            for (int i = 0; i < locations.size(); ++i) {
-                float dist = locations.get(i).distanceSquaredTo(location);
-                if (dist > 1.42f) continue;
-                locations.remove(i);
-                i--;
+            for (int j = 0; j < locations.size(); ++j) {
+                float dist = locations.get(j).distanceSquaredTo(location);
+                if (dist > 4) continue;
+                locations.remove(j);
+                j--;
             }
 
             if (locations.isEmpty()) return;
         }
 
         for (MapLocation l : locations) {
-            rc.broadcastFloat(lastGardenerLocationIdx, l.x);
-            rc.broadcastFloat(lastGardenerLocationIdx + 1, l.y);
-            lastGardenerLocationIdx += 2;
+            rc.broadcastFloat(start + length, l.x);
+            rc.broadcastFloat(start + length + 1, l.y);
+            length += 2;
         }
+        rc.broadcastInt(ORCHARD_LOCATIONS_OFFSET, length);
     }
 
-    public void removeGardenerLocation(int idx) throws GameActionException {
+    public void removeOrchardLocation(int idx) throws GameActionException {
 
-        float x = rc.readBroadcastFloat(lastGardenerLocationIdx);
-        float y = rc.readBroadcastFloat(lastGardenerLocationIdx + 1);
+        int start = ORCHARD_LOCATIONS_OFFSET + 1;
+        int length = rc.readBroadcastInt(ORCHARD_LOCATIONS_OFFSET);
 
-        rc.broadcastFloat(idx, x);
-        rc.broadcastFloat(idx + 1, y);
+        float last_x = rc.readBroadcastFloat(start + length - 2);
+        float last_y = rc.readBroadcastFloat(start + length - 1);
 
-        rc.broadcastFloat(lastGardenerLocationIdx, 0);
-        rc.broadcastFloat(lastGardenerLocationIdx + 1, 0);
+        rc.broadcastFloat(start + idx, last_x);
+        rc.broadcastFloat(start + idx + 1, last_y);
 
-        lastGardenerLocationIdx -= 2;
+        rc.broadcastFloat(start + length - 2, 0);
+        rc.broadcastFloat(start + length - 1, 0);
+
+        rc.broadcastInt(ORCHARD_LOCATIONS_OFFSET, length-2);
     }
 
-    public ArrayList<MapLocation> getGardenerLocations() throws GameActionException {
+    public ArrayList<MapLocation> getOrchardLocations() throws GameActionException {
 
         ArrayList<MapLocation> locations = new ArrayList<>();
 
-        int idx = GARDENER_LOCATION_OFFSET;
-        while(idx < lastGardenerLocationIdx) {
-            MapLocation location = getLocation(idx);
-            idx += 2;
-            if (location == null) break; // may be redundant
-            locations.add(location);
+        int start = ORCHARD_LOCATIONS_OFFSET + 1;
+        int length = rc.readBroadcastInt(ORCHARD_LOCATIONS_OFFSET);
+
+        for(int i = start; i < start + length; i+=2) {
+            locations.add(getOrchardLocation(i));
         }
 
         return locations;
     }
 
-    private MapLocation getLocation(int idx) throws GameActionException {
+    private MapLocation getOrchardLocation(int idx) throws GameActionException {
 
         float x = rc.readBroadcastFloat(idx);
         float y = rc.readBroadcastFloat(idx + 1);
