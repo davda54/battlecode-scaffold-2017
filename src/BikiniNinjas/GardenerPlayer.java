@@ -106,7 +106,7 @@ public class GardenerPlayer extends AbstractPlayer {
         for(Direction direction: treeDirections) {
             if(rc.canPlantTree(direction)) {
                 rc.plantTree(direction);
-                int plantedTreeId = rc.senseNearbyTrees(rc.getLocation().add(direction, 2.0f), 0.5f, rc.getTeam())[0].ID;
+                int plantedTreeId = rc.senseNearbyTrees(rc.getLocation().add(direction, 2.0f), 0.1f, rc.getTeam())[0].ID;
                 treesToBeBorn.add(new Tuple<>(plantedTreeId, 80));
 
                 return;
@@ -147,7 +147,8 @@ public class GardenerPlayer extends AbstractPlayer {
         int counter = 0;
 
         for(Direction direction: treeDirections) {
-            if(rc.canPlantTree(direction)) {
+            if(!rc.isCircleOccupiedExceptByThisRobot(rc.getLocation().add(direction, 2.0f), 1.0f)) {
+                rc.setIndicatorDot(rc.getLocation().add(direction, 2.0f), 0, 0, 255);
                 counter++;
             }
         }
@@ -169,8 +170,8 @@ public class GardenerPlayer extends AbstractPlayer {
         Direction toFavouriteGardener = rc.getLocation().directionTo(favouriteGardenerLocation);
         float distance = favouriteGardenerLocation.distanceTo(rc.getLocation());
 
-        if(distance > 4.9 && distance < 5.1) {
-            if(possibleTreesCount() >= 4 - patience / START_PATIENCE) {
+        if(distance > 5.9 && distance < 6.1) {
+            if(possibleTreesCount() >= 5 - patience / START_PATIENCE) {
                 state = State.PLANTING_TREES;
                 step();
                 return;
@@ -184,8 +185,8 @@ public class GardenerPlayer extends AbstractPlayer {
             return;
         }
 
-        if(rc.canMove(toFavouriteGardener, distance - 5.0f)) {
-            rc.move(toFavouriteGardener, distance - 5.0f);
+        if(rc.canMove(toFavouriteGardener, distance - 6.0f)) {
+            rc.move(toFavouriteGardener, distance - 6.0f);
             return;
         }
 
