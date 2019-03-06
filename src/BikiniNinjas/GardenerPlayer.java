@@ -84,11 +84,19 @@ public class GardenerPlayer extends AbstractPlayer {
     private void findSpot() throws GameActionException {
         if (patience++ > MAX_PATIENCE) {
             searchRandomly();
-            rc.setIndicatorDot(rc.getLocation(), 255, 0, 0);
+            rc.setIndicatorDot(rc.getLocation(), 255, 255, 0);
             return;
         }
 
-        if (favouriteOrchardLocation != null || (favouriteOrchardLocation = selectFavouriteOrchardLocation()) != null) {
+        if (favouriteOrchardLocation != null) {
+            goToFavouriteOrchard();
+            rc.setIndicatorDot(rc.getLocation(), 0, 255, 0);
+            rc.setIndicatorDot(favouriteOrchardLocation, 0, 255, 0);
+            return;
+        }
+
+        favouriteOrchardLocation = selectFavouriteOrchardLocation();
+        if (favouriteOrchardLocation != null) {
             goToFavouriteOrchard();
             rc.setIndicatorDot(rc.getLocation(), 0, 255, 0);
             rc.setIndicatorDot(favouriteOrchardLocation, 0, 255, 0);
@@ -171,6 +179,10 @@ public class GardenerPlayer extends AbstractPlayer {
         ArrayList<MapLocation> orchardLocations = bc.getGardenerLocations();
         ArrayList<RobotInfo> gardeners = getNearbyGardeners();
 
+        for(MapLocation l: orchardLocations) {
+            rc.setIndicatorDot(l, 255, 255, 255);
+        }
+
         int orchardId = gardeners.size() > 2
                 ? Utilities.argMaxDistance(rc.getLocation(), orchardLocations)
                 : Utilities.argMinDistance(rc.getLocation(), orchardLocations);
@@ -189,7 +201,7 @@ public class GardenerPlayer extends AbstractPlayer {
     private ArrayList<RobotInfo> getNearbyGardeners() throws GameActionException {
         RobotInfo[] robots = rc.senseNearbyRobots(-1, rc.getTeam());
         ArrayList<RobotInfo> gardeners = new ArrayList<>();
-        
+
         for (RobotInfo robot : robots) {
             if (robot.getType() == RobotType.GARDENER) gardeners.add(robot);
         }
@@ -215,17 +227,18 @@ public class GardenerPlayer extends AbstractPlayer {
         if(plantedTreeIds.size() < 5) return;
         haveNotified = true;
 
-        ArrayList<MapLocation> potentialLocation = new ArrayList<>();
+        ArrayList<MapLocation> potentialLocations = new ArrayList<>();
 
         for (Direction direction : treeDirections) {
             direction = direction.rotateRightDegrees(30);
             MapLocation center = rc.getLocation().add(direction, 5.5f);
 
             if (possibleTreesCount(center) >= 4) {
-                potentialLocation.add(center);
+                potentialLocations.add(center);
+                rc.setIndicatorDot(center, 255, 255, 255);
             }
         }
 
-        bc.addGardenerLocations(potentialLocation);
+        bc.addGardenerLocations(potentialLocations);
     }
 }
