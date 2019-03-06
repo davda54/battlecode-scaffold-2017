@@ -10,7 +10,7 @@ public class ScoutPlayer extends AbstractPlayer {
     private Direction direction;
     private HashMap<Integer, MapLocation> fruitfulTrees;
 
-    public ScoutPlayer(RobotController rc) {
+    public ScoutPlayer(RobotController rc) throws GameActionException {
         super(rc);
     }
 

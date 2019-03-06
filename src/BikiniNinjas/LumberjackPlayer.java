@@ -4,7 +4,7 @@ import battlecode.common.*;
 
 public class LumberjackPlayer extends AbstractPlayer {
 
-    public LumberjackPlayer(RobotController rc) {
+    public LumberjackPlayer(RobotController rc) throws GameActionException {
         super(rc);
     }
 

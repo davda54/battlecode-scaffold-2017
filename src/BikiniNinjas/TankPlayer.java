@@ -5,7 +5,7 @@ import battlecode.common.RobotController;
 
 public class TankPlayer extends AbstractPlayer {
 
-    public TankPlayer(RobotController rc) {
+    public TankPlayer(RobotController rc) throws GameActionException {
         super(rc);
     }
 

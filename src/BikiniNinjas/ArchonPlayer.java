@@ -1,11 +1,20 @@
 package BikiniNinjas;
 
 import battlecode.common.*;
+import com.sun.javafx.geom.Vec3f;
+
+import java.util.Locale;
 
 public class ArchonPlayer extends AbstractPlayer {
 
-    public ArchonPlayer(RobotController rc) {
+    private MapLocation target;
+
+    private final int TREE_SENSE_RADIUS = 5;
+    private final int TARGET_DISTANCE = 3;
+
+    public ArchonPlayer(RobotController rc) throws GameActionException {
         super(rc);
+        target = null;
     }
 
     @Override
@@ -19,20 +28,39 @@ public class ArchonPlayer extends AbstractPlayer {
 
     @Override
     protected void step() throws GameActionException {
-        // Generate a random direction
-        Direction dir = Utilities.randomDirection();
 
-        // Randomly attempt to build a gardener in this direction
-        if (rc.canHireGardener(dir) && Math.random() < .01) {
-            rc.hireGardener(dir);
+        Team myTeam = rc.getTeam();
+        TreeInfo[] myTrees = rc.senseNearbyTrees(TREE_SENSE_RADIUS, myTeam);
+        MapLocation myLocation = rc.getLocation();
+
+        if (myTrees.length != 0) {
+            if (target == null) setRandomTarget(myLocation);
+        }
+        else {
+            Direction spawnDir = (isAtTarget(myLocation) ? Utilities.randomDirection() : myLocation.directionTo(target).opposite());
+            if (rc.canHireGardener(spawnDir) && 3 * RobotType.GARDENER.bulletCost <= rc.getTeamBullets()  &&
+                rc.getTreeCount() >= (bc.getCountOf(RobotType.GARDENER) - 1) * 6) {
+                bm.build(RobotType.GARDENER, spawnDir);
+                setRandomTarget(myLocation);
+            }
         }
 
-        // Move randomly
-        Utilities.tryMove(rc, Utilities.randomDirection());
+        if (!isAtTarget(myLocation)) {
+            while (!Utilities.tryMove(rc, myLocation.directionTo(target))) {
+                setRandomTarget(myLocation);
+            }
+            rc.setIndicatorLine(myLocation, target, 0, 0, 255);
+        }
+        else {
+            target = null;
+        }
+    }
 
-        // Broadcast archon's location for other robots on the team to know
-        MapLocation myLocation = rc.getLocation();
-        rc.broadcast(0,(int)myLocation.x);
-        rc.broadcast(1,(int)myLocation.y);
+    private boolean isAtTarget(MapLocation location) {
+        return target == null || location.distanceTo(target) < 0.5;
+    }
+
+    private void setRandomTarget(MapLocation location) {
+        target = location.add(Utilities.randomDirection(), TARGET_DISTANCE);
     }
 }

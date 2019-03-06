@@ -4,7 +4,7 @@ import battlecode.common.*;
 
 public class SoldierPlayer extends AbstractPlayer {
 
-    public SoldierPlayer(RobotController rc) {
+    public SoldierPlayer(RobotController rc) throws GameActionException {
         super(rc);
     }
 

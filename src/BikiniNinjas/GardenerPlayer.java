@@ -4,21 +4,21 @@ import battlecode.common.*;
 
 public class GardenerPlayer extends AbstractPlayer {
 
-    public GardenerPlayer(RobotController rc) {
+    public GardenerPlayer(RobotController rc) throws GameActionException {
         super(rc);
     }
 
     @Override
     protected void initialize() throws GameActionException {
         Direction direction = Utilities.randomDirection();
-        while(!rc.canBuildRobot(RobotType.SCOUT, direction)) {
-            direction = Utilities.randomDirection();
+        if (rc.canBuildRobot(RobotType.SCOUT, direction)) {
+            bm.build(RobotType.SCOUT, direction);
         }
-        rc.buildRobot(RobotType.SCOUT, direction);
     }
 
     @Override
     protected void step() throws GameActionException {
+
         // Listen for home archon's location
         int xPos = rc.readBroadcast(0);
         int yPos = rc.readBroadcast(1);
@@ -27,12 +27,18 @@ public class GardenerPlayer extends AbstractPlayer {
         // Generate a random direction
         Direction dir = Utilities.randomDirection();
 
+        Direction direction = Utilities.randomDirection();
+        if (rc.canBuildRobot(RobotType.SCOUT, direction)) {
+            bm.build(RobotType.SCOUT, direction);
+        }
+
+        /*
         // Randomly attempt to build a soldier or lumberjack in this direction
         if (rc.canBuildRobot(RobotType.SOLDIER, dir) && Math.random() < .01) {
             rc.buildRobot(RobotType.SOLDIER, dir);
         } else if (rc.canBuildRobot(RobotType.LUMBERJACK, dir) && Math.random() < .01 && rc.isBuildReady()) {
             rc.buildRobot(RobotType.LUMBERJACK, dir);
-        }
+        }*/
 
         // Move randomly
         Utilities.tryMove(rc, Utilities.randomDirection());
