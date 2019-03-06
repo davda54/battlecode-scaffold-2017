@@ -3,10 +3,8 @@ package BikiniNinjas;
 import battlecode.common.*;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.ThreadLocalRandom;
-import java.util.stream.Collectors;
+import java.util.HashMap;
+import java.util.Map;
 
 public class GardenerPlayer extends AbstractPlayer {
 
@@ -16,14 +14,15 @@ public class GardenerPlayer extends AbstractPlayer {
         PLANTING_TREES
     }
 
-    private static final int START_PATIENCY = 200;
+    private static final int START_PATIENCE = 200;
 
     private State state;
-    private ArrayList<Direction> futureTrees;
+    private ArrayList<Direction> treeDirections;
+    private ArrayList<Tuple<Integer, Integer>> treesToBeBorn;
     private ArrayList<Integer> plantedTreeIds;
-    private int wateredTreeIndex;
+
     private Direction moveDirection;
-    private int patiency;
+    private int patience;
     private MapLocation favouriteGardenerLocation;
     private boolean orbitClockwise;
 
@@ -35,15 +34,14 @@ public class GardenerPlayer extends AbstractPlayer {
     protected void initialize() throws GameActionException {
 
         state = State.BUILDING_FIRST_SCOUT;
-        wateredTreeIndex = 0;
         moveDirection = Utilities.randomDirection();
-        patiency = START_PATIENCY;
+        patience = START_PATIENCE;
         favouriteGardenerLocation = null;
         orbitClockwise = Math.random() > 0.5f;
 
-        futureTrees = new ArrayList<>();
+        treeDirections = new ArrayList<>();
         for (int i = 0; i < 6; i++) {
-            futureTrees.add(Direction.NORTH.rotateLeftDegrees(i*60));
+            treeDirections.add(Direction.NORTH.rotateLeftDegrees(i*60));
         }
 
         plantedTreeIds = new ArrayList<>();
@@ -63,6 +61,7 @@ public class GardenerPlayer extends AbstractPlayer {
                 break;
         }
 
+        growTrees();
         waterTrees();
     }
 
@@ -82,12 +81,12 @@ public class GardenerPlayer extends AbstractPlayer {
     }
 
     private void findSpot() throws GameActionException {
-        if(patiency-- < 0) {
+        if(patience-- < 0) {
             searchRandomly();
             return;
         }
 
-        if(favouriteGardenerLocation != null && rc.senseRobotAtLocation(favouriteGardenerLocation) != null) {
+        if(favouriteGardenerLocation != null && rc.canSenseLocation(favouriteGardenerLocation) && rc.senseRobotAtLocation(favouriteGardenerLocation) != null) {
             orbitFavouriteGardener();
             return;
         }
@@ -103,10 +102,11 @@ public class GardenerPlayer extends AbstractPlayer {
     }
 
     private void plantTrees() throws GameActionException {
-        for(Direction direction: futureTrees) {
+        for(Direction direction: treeDirections) {
             if(rc.canPlantTree(direction)) {
                 rc.plantTree(direction);
-                plantedTreeIds.add(rc.senseNearbyTrees(rc.getLocation().add(direction, 1.1f), 0.1f, rc.getTeam())[0].ID);
+                int plantedTreeId = rc.senseNearbyTrees(rc.getLocation().add(direction, 2.0f), 0.5f, rc.getTeam())[0].ID;
+                treesToBeBorn.add(new Tuple<>(plantedTreeId, 80));
 
                 return;
             }
@@ -114,22 +114,38 @@ public class GardenerPlayer extends AbstractPlayer {
     }
 
     private void waterTrees() throws GameActionException {
-        if(plantedTreeIds.size() == 0) return;
+        float minHealth = Float.POSITIVE_INFINITY;
+        int dryTreeId = -1;
 
-        if(!rc.canWater(plantedTreeIds.get(wateredTreeIndex))) {
-            plantedTreeIds.remove(wateredTreeIndex);
-            wateredTreeIndex = wateredTreeIndex % plantedTreeIds.size();
-            waterTrees();
+        for(int i = 0; i < plantedTreeIds.size(); i++) {
+            int treeId = plantedTreeIds.get(i);
+
+            if(!rc.canSenseTree(treeId)) {
+                plantedTreeIds.remove(i);
+                i--; continue;
+            }
+
+            if(!rc.canWater(treeId)) {
+                continue;
+            }
+
+            float health = rc.senseTree(treeId).health;
+            if(health < minHealth) {
+                minHealth = health;
+                dryTreeId = treeId;
+            }
+
         }
 
-        rc.water(wateredTreeIndex);
-        wateredTreeIndex = (wateredTreeIndex + 1) % plantedTreeIds.size();
+        if(dryTreeId != -1) {
+            rc.water(dryTreeId);
+        }
     }
 
     private int possibleTreesCount() throws GameActionException {
         int counter = 0;
 
-        for(Direction direction: futureTrees) {
+        for(Direction direction: treeDirections) {
             if(rc.canPlantTree(direction)) {
                 counter++;
             }
@@ -139,7 +155,7 @@ public class GardenerPlayer extends AbstractPlayer {
     }
 
     private void searchRandomly() throws GameActionException {
-        if(possibleTreesCount() >= 4 - patiency / START_PATIENCY) {
+        if(possibleTreesCount() >= 4 - patience / START_PATIENCE) {
             state = State.PLANTING_TREES;
             step();
             return;
@@ -153,7 +169,7 @@ public class GardenerPlayer extends AbstractPlayer {
         float distance = favouriteGardenerLocation.distanceTo(rc.getLocation());
 
         if(distance > 4.9 && distance < 5.1) {
-            if(possibleTreesCount() >= 4 - patiency / START_PATIENCY) {
+            if(possibleTreesCount() >= 4 - patience / START_PATIENCE) {
                 state = State.PLANTING_TREES;
                 step();
                 return;
@@ -175,7 +191,7 @@ public class GardenerPlayer extends AbstractPlayer {
         searchRandomly();
     }
 
-    private ArrayList<RobotInfo> getNearbyGardeners() {
+    private ArrayList<RobotInfo> getNearbyGardeners() throws GameActionException {
         RobotInfo[] robots = rc.senseNearbyRobots(-1, rc.getTeam());
         ArrayList<RobotInfo> gardeners = new ArrayList<>();
 
@@ -185,4 +201,17 @@ public class GardenerPlayer extends AbstractPlayer {
 
         return gardeners;
     }
+
+     private void growTrees() {
+        for(int i = 0; i < treesToBeBorn.size(); i++) {
+            Tuple<Integer, Integer> idFrameTuple = treesToBeBorn.get(i);
+            idFrameTuple.item2--;
+
+            if(idFrameTuple.item2 <= 0) {
+                plantedTreeIds.add(idFrameTuple.item1);
+                treesToBeBorn.remove(i);
+                i--; continue;
+            }
+        }
+     }
 }

@@ -120,7 +120,7 @@ public class Utilities {
             distance *= 0.95;
         }
 
-        rc.move(direction);
+        rc.move(direction, distance);
         return direction;
     }
 
