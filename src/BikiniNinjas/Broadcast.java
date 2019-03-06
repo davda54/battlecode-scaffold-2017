@@ -5,6 +5,7 @@ import battlecode.common.MapLocation;
 import battlecode.common.RobotController;
 import battlecode.common.RobotType;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,10 +26,14 @@ public class Broadcast {
     // ARCHON, GARDENER, LUMBERJACK, SOLDIER, TANK, SCOUT
     private final int[] COUNTS_BITS = {0, 8, 20, 32, 48, 56, 64};
 
+    private int lastGardenerLocationIdx;
+    private final int GARDENER_LOCATION_OFFSET = 6;
+
 
     public Broadcast(RobotController rc) throws GameActionException {
         this.rc = rc;
         this.lastWriteState = NOT_SET;
+        this.lastGardenerLocationIdx = 0;
     }
 
     public int getCountOf(RobotType type) throws GameActionException {
@@ -43,6 +48,70 @@ public class Broadcast {
     public MapLocation[] getLocations() {
         // TODO: implement
         return null;
+    }
+
+    public void addGardenerLocations(ArrayList<MapLocation> locations) throws GameActionException {
+
+        int idx = GARDENER_LOCATION_OFFSET;
+        while(idx < lastGardenerLocationIdx) {
+            MapLocation location = getLocation(idx);
+            idx += 2;
+            if (location == null) break; // may be redundant
+
+            for (int i = 0; i < locations.size(); ++i) {
+                float dist = locations.get(i).distanceSquaredTo(location);
+                if (dist > 1.42f) continue;
+                locations.remove(i);
+                i--;
+            }
+
+            if (locations.isEmpty()) return;
+        }
+
+        for (MapLocation l : locations) {
+            rc.broadcastFloat(lastGardenerLocationIdx, l.x);
+            rc.broadcastFloat(lastGardenerLocationIdx + 1, l.y);
+            lastGardenerLocationIdx += 2;
+        }
+    }
+
+    public void removeGardenerLocation(int idx) throws GameActionException {
+
+        float x = rc.readBroadcastFloat(lastGardenerLocationIdx);
+        float y = rc.readBroadcastFloat(lastGardenerLocationIdx + 1);
+
+        rc.broadcastFloat(idx, x);
+        rc.broadcastFloat(idx + 1, y);
+
+        rc.broadcastFloat(lastGardenerLocationIdx, 0);
+        rc.broadcastFloat(lastGardenerLocationIdx + 1, 0);
+
+        lastGardenerLocationIdx -= 2;
+    }
+
+    public ArrayList<MapLocation> getFreeGardenerLocations() throws GameActionException {
+
+        ArrayList<MapLocation> locations = new ArrayList<>();
+
+        int idx = GARDENER_LOCATION_OFFSET;
+        while(idx < lastGardenerLocationIdx) {
+            MapLocation location = getLocation(idx);
+            idx += 2;
+            if (location == null) break; // may be redundant
+            locations.add(location);
+        }
+
+        return locations;
+    }
+
+    private MapLocation getLocation(int idx) throws GameActionException {
+
+        float x = rc.readBroadcastFloat(idx);
+        float y = rc.readBroadcastFloat(idx + 1);
+
+        if (x == 0.0f && y == 0.0f) return null;
+
+        return new MapLocation(x, y);
     }
 
     public void takeIn(HashMap<RobotType, Integer> inactiveChildren) throws GameActionException {
