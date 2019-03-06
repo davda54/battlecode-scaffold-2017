@@ -21,7 +21,7 @@ public class GardenerPlayer extends AbstractPlayer {
 
     private Direction moveDirection;
     private int patience;
-    private MapLocation favouriteGardenerLocation;
+    private MapLocation favouriteOrchardLocation;
     private boolean orbitClockwise;
     private boolean haveNotified;
 
@@ -35,7 +35,7 @@ public class GardenerPlayer extends AbstractPlayer {
         state = State.BUILDING_FIRST_SCOUT;
         moveDirection = Utilities.randomDirection();
         patience = 0;
-        favouriteGardenerLocation = null;
+        favouriteOrchardLocation = null;
         orbitClockwise = Math.random() > 0.5f;
         haveNotified = false;
 
@@ -59,12 +59,11 @@ public class GardenerPlayer extends AbstractPlayer {
                 break;
             case PLANTING_TREES:
                 plantTrees();
+                growTrees();
+                waterTrees();
+                if(!haveNotified) notifyPotentialLocations();
                 break;
         }
-
-        growTrees();
-        waterTrees();
-        if(!haveNotified) notifyPotentialLocations();
     }
 
     private void buildFirstScout() throws GameActionException {
@@ -89,17 +88,10 @@ public class GardenerPlayer extends AbstractPlayer {
             return;
         }
 
-        if (favouriteGardenerLocation != null && rc.canSenseLocation(favouriteGardenerLocation) && rc.senseRobotAtLocation(favouriteGardenerLocation) != null) {
-            orbitFavouriteGardener();
+        if (favouriteOrchardLocation != null || (favouriteOrchardLocation = selectFavouriteOrchardLocation()) != null) {
+            goToFavouriteOrchard();
             rc.setIndicatorDot(rc.getLocation(), 0, 255, 0);
-            return;
-        }
-
-        ArrayList<RobotInfo> nearbyGardeners = getNearbyGardeners();
-        if (nearbyGardeners.size() > 0) {
-            favouriteGardenerLocation = nearbyGardeners.get(Utilities.randInt(nearbyGardeners.size())).location;
-            orbitFavouriteGardener();
-            rc.setIndicatorDot(rc.getLocation(), 0, 255, 0);
+            rc.setIndicatorDot(favouriteOrchardLocation, 0, 255, 0);
             return;
         }
 
@@ -175,37 +167,29 @@ public class GardenerPlayer extends AbstractPlayer {
         moveDirection = Utilities.moveRandomly(rc, moveDirection);
     }
 
-    private void orbitFavouriteGardener() throws GameActionException {
-        Direction toFavouriteGardener = rc.getLocation().directionTo(favouriteGardenerLocation);
-        float distance = favouriteGardenerLocation.distanceTo(rc.getLocation());
+    private MapLocation selectFavouriteOrchardLocation() throws GameActionException {
+        ArrayList<MapLocation> orchardLocations = bc.getGardenerLocations();
+        ArrayList<RobotInfo> gardeners = getNearbyGardeners();
 
-        if (distance > 5.9 && distance < 6.1) {
-            if (possibleTreesCount(rc.getLocation()) >= 5 - patience / MAX_PATIENCE) {
-                state = State.PLANTING_TREES;
-                step();
-                return;
-            }
+        int orchardId = gardeners.size() > 2
+                ? Utilities.argMaxDistance(rc.getLocation(), orchardLocations)
+                : Utilities.argMinDistance(rc.getLocation(), orchardLocations);
 
-            Direction perpendicular = orbitClockwise
-                    ? toFavouriteGardener.rotateLeftDegrees(90)
-                    : toFavouriteGardener.rotateRightDegrees(90);
+        if(orchardId == -1) return null;
 
-            Utilities.tryMove(rc, perpendicular);
-            return;
-        }
+        bc.removeGardenerLocation(orchardId);
+        return orchardLocations.get(orchardId);
+    }
 
-        if (rc.canMove(toFavouriteGardener, distance - 6.0f)) {
-            rc.move(toFavouriteGardener, distance - 6.0f);
-            return;
-        }
-
+    private void goToFavouriteOrchard() throws GameActionException {
+        // TODO: navigation
         searchRandomly();
     }
 
     private ArrayList<RobotInfo> getNearbyGardeners() throws GameActionException {
         RobotInfo[] robots = rc.senseNearbyRobots(-1, rc.getTeam());
         ArrayList<RobotInfo> gardeners = new ArrayList<>();
-
+        
         for (RobotInfo robot : robots) {
             if (robot.getType() == RobotType.GARDENER) gardeners.add(robot);
         }
@@ -242,6 +226,6 @@ public class GardenerPlayer extends AbstractPlayer {
             }
         }
 
-        //TODO: broadcast
+        bc.addGardenerLocations(potentialLocation);
     }
 }

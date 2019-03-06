@@ -2,9 +2,8 @@ package BikiniNinjas;
 
 import battlecode.common.*;
 
+import java.util.ArrayList;
 import java.util.Random;
-import java.util.stream.Collectors;
-import java.util.Arrays;
 
 public class Utilities {
 
@@ -131,5 +130,35 @@ public class Utilities {
 
     public static int randInt(int max) {
         return rand.nextInt(max);
+    }
+
+    public static int argMaxDistance(MapLocation from, ArrayList<MapLocation> to) {
+        int maxIndex = -1;
+        float maxDistance = Float.NEGATIVE_INFINITY;
+
+        for (int i = 0; i < to.size(); i++) {
+            float distance = to.get(i).distanceSquaredTo(from);
+            if(distance > maxDistance) {
+                maxDistance = distance;
+                maxIndex = i;
+            }
+        }
+
+        return maxIndex;
+    }
+
+    public static int argMinDistance(MapLocation from, ArrayList<MapLocation> to) {
+        int minIndex = -1;
+        float minDistance = Float.POSITIVE_INFINITY;
+
+        for (int i = 0; i < to.size(); i++) {
+            float distance = to.get(i).distanceSquaredTo(from);
+            if(distance < minDistance) {
+                minDistance = distance;
+                minIndex = i;
+            }
+        }
+
+        return minIndex;
     }
 }
