@@ -3,8 +3,6 @@ package BikiniNinjas;
 import battlecode.common.*;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 
 public class GardenerPlayer extends AbstractPlayer {
 
@@ -14,7 +12,7 @@ public class GardenerPlayer extends AbstractPlayer {
         PLANTING_TREES
     }
 
-    private static final int START_PATIENCE = 200;
+    private static final int MAX_PATIENCE = 200;
 
     private State state;
     private ArrayList<Direction> treeDirections;
@@ -35,7 +33,7 @@ public class GardenerPlayer extends AbstractPlayer {
 
         state = State.BUILDING_FIRST_SCOUT;
         moveDirection = Utilities.randomDirection();
-        patience = START_PATIENCE;
+        patience = 0;
         favouriteGardenerLocation = null;
         orbitClockwise = Math.random() > 0.5f;
 
@@ -83,7 +81,7 @@ public class GardenerPlayer extends AbstractPlayer {
     }
 
     private void findSpot() throws GameActionException {
-        if(patience-- < 0) {
+        if(patience++ > MAX_PATIENCE) {
             searchRandomly();
             return;
         }
@@ -158,7 +156,7 @@ public class GardenerPlayer extends AbstractPlayer {
     }
 
     private void searchRandomly() throws GameActionException {
-        if(possibleTreesCount() >= 4 - patience / START_PATIENCE) {
+        if(possibleTreesCount() >= 5 - patience / MAX_PATIENCE) {
             state = State.PLANTING_TREES;
             step();
             return;
@@ -172,7 +170,7 @@ public class GardenerPlayer extends AbstractPlayer {
         float distance = favouriteGardenerLocation.distanceTo(rc.getLocation());
 
         if(distance > 5.9 && distance < 6.1) {
-            if(possibleTreesCount() >= 5 - patience / START_PATIENCE) {
+            if(possibleTreesCount() >= 5 - patience / MAX_PATIENCE) {
                 state = State.PLANTING_TREES;
                 step();
                 return;
