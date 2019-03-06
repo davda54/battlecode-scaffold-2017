@@ -89,7 +89,7 @@ public class Broadcast {
         lastGardenerLocationIdx -= 2;
     }
 
-    public ArrayList<MapLocation> getFreeGardenerLocations() throws GameActionException {
+    public ArrayList<MapLocation> getGardenerLocations() throws GameActionException {
 
         ArrayList<MapLocation> locations = new ArrayList<>();
 
