@@ -1,9 +1,6 @@
 package BikiniNinjas;
 
-import battlecode.common.Clock;
-import battlecode.common.GameActionException;
-import battlecode.common.RobotController;
-import battlecode.common.Team;
+import battlecode.common.*;
 
 public abstract class AbstractPlayer {
 
@@ -11,12 +8,14 @@ public abstract class AbstractPlayer {
     protected Team enemy;
     protected Broadcast bc;
     protected BuildManager bm;
+    protected Navigation navigation;
 
     public AbstractPlayer(RobotController rc) throws GameActionException {
         this.rc = rc;
         this.enemy = rc.getTeam().opponent();
         this.bc = new Broadcast(rc);
         this.bm = new BuildManager(rc);
+        this.navigation = new Navigation(rc);
     }
 
     public void run() throws GameActionException {
@@ -28,6 +27,7 @@ public abstract class AbstractPlayer {
 
                 bm.update();
                 bc.takeIn(bm.getInactiveRobots());
+                navigation.step();
                 step();
                 Clock.yield();
 
@@ -42,4 +42,5 @@ public abstract class AbstractPlayer {
 
     protected abstract void initialize() throws GameActionException;
     protected abstract void step() throws GameActionException;
+
 }
