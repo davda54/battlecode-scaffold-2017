@@ -68,16 +68,15 @@ public class GardenerPlayer extends AbstractPlayer {
     }
 
     private void buildFirstScout() throws GameActionException {
-        //TODO: check if scout has not been built yet
-
-        Direction direction = Utilities.randomDirection();
-        for (int i = 0; i < 36; i++) {
-            if (rc.canBuildRobot(RobotType.SCOUT, direction) &&
-                    bc.getCountOf(RobotType.SCOUT) == 0) {
-                bm.build(RobotType.SCOUT, direction);
-                break;
+        if (bc.getCountOf(RobotType.SCOUT) == 0) {
+            Direction direction = Utilities.randomDirection();
+            for (int i = 0; i < 36; i++) {
+                if (rc.canBuildRobot(RobotType.SCOUT, direction)) {
+                    bm.build(RobotType.SCOUT, direction);
+                    break;
+                }
+                direction = direction.rotateLeftDegrees(10);
             }
-            direction = direction.rotateLeftDegrees(10);
         }
 
         state = State.FINDING_SPOT;
