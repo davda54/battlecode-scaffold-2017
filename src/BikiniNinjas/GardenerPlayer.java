@@ -1,6 +1,8 @@
 package BikiniNinjas;
 
 import battlecode.common.*;
+import battlecode.schema.GameMap;
+import battlecode.server.GameInfo;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -27,6 +29,9 @@ public class GardenerPlayer extends AbstractPlayer {
     private boolean startedNavigation;
     private boolean findingFirstOrchard;
 
+    private boolean isRecruiter;
+    private Direction recruitmentDirection;
+
     public GardenerPlayer(RobotController rc) throws GameActionException {
         super(rc);
     }
@@ -41,6 +46,8 @@ public class GardenerPlayer extends AbstractPlayer {
         startedNavigation = false;
         haveNotified = false;
         findingFirstOrchard = true;
+
+        isRecruiter = true;
 
         treesToBeBorn = new ArrayList<>();
         treeDirections = new ArrayList<>();
@@ -119,6 +126,7 @@ public class GardenerPlayer extends AbstractPlayer {
     }
 
     private void plantTrees() throws GameActionException {
+
         for (Direction direction : treeDirections) {
             if (rc.canPlantTree(direction)) {
                 rc.plantTree(direction);
@@ -283,5 +291,13 @@ public class GardenerPlayer extends AbstractPlayer {
                 locations.set(i, null);
             }
         }
+    }
+
+    @Override
+    protected void printState() {
+        super.printState();
+
+        System.out.println("CURRENT STATE: " + state);
+        System.out.println("FAVOURITE ORCHARD " + (favouriteOrchardLocation == null ? "null" : favouriteOrchardLocation));
     }
 }
