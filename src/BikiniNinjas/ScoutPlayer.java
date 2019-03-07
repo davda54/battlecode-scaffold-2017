@@ -2,9 +2,7 @@ package BikiniNinjas;
 
 import battlecode.common.*;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class ScoutPlayer extends AbstractPlayer {
 
@@ -26,10 +24,27 @@ public class ScoutPlayer extends AbstractPlayer {
         boolean hasMoved = false;
         MapLocation myLoc = rc.getLocation();
         RobotInfo[] robots = rc.senseNearbyRobots();
-        MapLocation[] dangLocs = (MapLocation[]) Arrays.stream(robots).filter(ri->ri.getType().canAttack()).map(ri->ri.location).toArray();
-        if(dangLocs.length > 2) {
-            float dx = Arrays.stream(dangLocs).map(l -> myLoc.x - l.x).reduce(0f, (f1, f2) -> f1 + f2);
-            float dy = Arrays.stream(dangLocs).map(l -> myLoc.y - l.y).reduce(0f, (f1, f2) -> f1 + f2);
+        ArrayList<MapLocation> list = new ArrayList<>();
+        for (RobotInfo ri : robots) {
+            if (ri.getType().canAttack()) {
+                MapLocation location = ri.location;
+                list.add(location);
+            }
+        }
+        ArrayList<MapLocation> dangLocs =  list;
+        if(dangLocs.size() > 2) {
+            Float acc = 0f;
+            for (MapLocation l : dangLocs) {
+                Float aFloat = myLoc.x - l.x;
+                acc = acc + aFloat;
+            }
+            float dx = acc;
+            Float result = 0f;
+            for (MapLocation l : dangLocs) {
+                Float aFloat = myLoc.y - l.y;
+                result = result + aFloat;
+            }
+            float dy = result;
             rc.move(new Direction(dx,dy));
             hasMoved = true;
         }

@@ -2,6 +2,7 @@ package BikiniNinjas;
 
 import battlecode.common.*;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -34,11 +35,23 @@ public class SoldierPlayer extends AbstractPlayer {
         //shooting other bots is preferred, otherwise shoot in direction of dangerous bullets
         double thresholdAngle = 15;
         BulletInfo[] bullets = rc.senseNearbyBullets();
-        BulletInfo[] dangerousBullets = (BulletInfo[]) Arrays.stream(bullets).filter(b -> Math.abs( b.dir.degreesBetween(b.location.directionTo(myLocation)))<= thresholdAngle).toArray();
+        List<BulletInfo> list = new ArrayList<>();
+        for (BulletInfo b : bullets) {
+            if (Math.abs(b.dir.degreesBetween(b.location.directionTo(myLocation))) <= thresholdAngle) {
+                list.add(b);
+            }
+        }
+        List<BulletInfo> dangerousBullets = list;
         int bulletCountThreshold = 15;
-        if (bulletCountThreshold <= dangerousBullets.length && rc.canFirePentadShot() ){
+        if (bulletCountThreshold <= dangerousBullets.size() && rc.canFirePentadShot() ){
             //average angle
-            float shootDirRads = Arrays.stream(dangerousBullets).map(b->myLocation.directionTo(b.location)).map(d -> d.radians).reduce(0f, (f1,f2)-> (float)( f1+f2))/dangerousBullets.length;
+            Float acc = 0f;
+            for (BulletInfo b : dangerousBullets) {
+                Direction d = myLocation.directionTo(b.location);
+                Float radians = d.radians;
+                acc = acc + radians;
+            }
+            float shootDirRads = acc /dangerousBullets.size();
             rc.firePentadShot(new Direction(shootDirRads));
         }
 
