@@ -106,8 +106,9 @@ public class Utilities {
         Direction direction = initialDirection;
         float distance = rc.getType().strideRadius;
 
-        while(!rc.canMove(direction, distance)) {
-            if(Math.random() > 0.5f) direction = direction.rotateLeftDegrees(45 + (float)Math.random() * 90);
+        for(int c = 0; c < 100; c++) {
+            if (rc.canMove(direction, distance)) break;
+            if (Math.random() > 0.5f) direction = direction.rotateLeftDegrees(45 + (float)Math.random() * 90);
             else direction = direction.rotateRightDegrees(45 + (float)Math.random() * 90);
 
             if(rc.canMove(direction, distance)) break;

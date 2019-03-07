@@ -5,6 +5,8 @@ import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
 import battlecode.common.RobotController;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Map;
 
 public class Navigation {
@@ -28,6 +30,7 @@ public class Navigation {
     private Avoidance avoidance;
     private Direction orientation;
     private int avoidanceCooldown;
+    private ArrayList<Tuple<MapLocation, Avoidance>> collisionMemory;
 
     public StopFlag stopFlag;
 
@@ -39,6 +42,7 @@ public class Navigation {
         this.targetLocation = null;
         this.avoidance = Avoidance.NONE;
         this.avoidanceCooldown = 0;
+        this.collisionMemory = new ArrayList<>();
         this.stopFlag = StopFlag.SUCCESS;
     }
 
@@ -61,6 +65,7 @@ public class Navigation {
         targetLocation = location;
         avoidance = Avoidance.NONE;
         avoidanceCooldown = 0;
+        collisionMemory.clear();
         orientation = location.directionTo(targetLocation);
 
         step();
@@ -100,20 +105,26 @@ public class Navigation {
                 if (newLeftOrientation == null) {
                     orientation = newRightOrientation;
                     avoidance = Avoidance.LEFT;
-                }
-                else if (newRightOrientation == null) {
+                } else if (newRightOrientation == null) {
                     orientation = newLeftOrientation;
                     avoidance = Avoidance.RIGHT;
-                }
-                else if (newLeftOrientation.degreesBetween(dirToTarget) > newRightOrientation.degreesBetween(dirToTarget)) {
-                    orientation = newRightOrientation;
-                    avoidance = Avoidance.RIGHT;
-                }
-                else {
-                    orientation = newLeftOrientation;
-                    avoidance = Avoidance.LEFT;
+                } else {
+                    Avoidance memory = locationInMemory(rc.getLocation());
+                    if (memory == Avoidance.NONE) {
+                        if (Math.abs(newLeftOrientation.degreesBetween(dirToTarget)) > Math.abs(newRightOrientation.degreesBetween(dirToTarget))) {
+                            orientation = newRightOrientation;
+                            avoidance = Avoidance.RIGHT;
+                        } else {
+                            orientation = newLeftOrientation;
+                            avoidance = Avoidance.LEFT;
+                        }
+                    } else {
+                        avoidance = memory == Avoidance.LEFT ? Avoidance.RIGHT : Avoidance.LEFT;
+                        orientation = memory == Avoidance.LEFT ? newRightOrientation : newLeftOrientation;
+                    }
                 }
 
+                collisionMemory.add(new Tuple<>(rc.getLocation(), avoidance));
                 rc.move(orientation);
                 rc.setIndicatorLine(rc.getLocation(), rc.getLocation().add(orientation, 4), 255, 255, 255);
                 return;
@@ -126,6 +137,16 @@ public class Navigation {
         if (!moveAroundObstacle()) {
             stopNavigation(StopFlag.UNREACHABLE);
         }
+    }
+
+    private Avoidance locationInMemory(MapLocation location) {
+
+        for (Tuple<MapLocation, Avoidance> l : collisionMemory) {
+            if (location.distanceSquaredTo(l.item1) > 0.25) continue;
+            return l.item2;
+        }
+
+        return Avoidance.NONE;
     }
 
     private boolean moveDirectly() throws GameActionException {

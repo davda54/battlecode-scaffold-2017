@@ -109,6 +109,11 @@ public class GardenerPlayer extends AbstractPlayer {
             return;
         }
 
+        if (navigation.isNavigating()) {
+            navigation.stopNavigation();
+            return;
+        }
+
         searchRandomly();
         rc.setIndicatorDot(rc.getLocation(), 0, 0, 255);
     }
@@ -187,7 +192,7 @@ public class GardenerPlayer extends AbstractPlayer {
         ArrayList<RobotInfo> gardeners = getNearbyGardeners();
 
         for(MapLocation l: orchardLocations) {
-            rc.setIndicatorDot(l, 255, 255, 255);
+            if(l != null) rc.setIndicatorDot(l, 255, 255, 255);
         }
 
         int orchardId = gardeners.size() <= 2 || !findingFirstOrchard
