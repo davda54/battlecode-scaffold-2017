@@ -32,6 +32,12 @@ public class ArchonPlayer extends AbstractPlayer {
         TreeInfo[] myTrees = rc.senseNearbyTrees(TREE_SENSE_RADIUS, myTeam);
         MapLocation myLocation = rc.getLocation();
 
+        if (rc.getTeamBullets() > BULLET_RESERVE){
+            float bulletDiff = rc.getTeamBullets() - BULLET_RESERVE;
+            int victoryPointCount = (int) (bulletDiff/rc.getVictoryPointCost());
+            rc.donate(victoryPointCount * rc.getVictoryPointCost());
+        }
+
         if (myTrees.length != 0) {
             if (!navigation.isNavigating()) setRandomTarget(myLocation);
             return;
@@ -44,16 +50,9 @@ public class ArchonPlayer extends AbstractPlayer {
                     rc.getTreeCount() >= (bc.getCountOf(RobotType.GARDENER) - 1) * 6) {
                 bm.build(RobotType.GARDENER, spawnDir);
                 setRandomTarget(myLocation);
-                return;
+                break;
             }
         }
-
-        if (rc.getTeamBullets() > BULLET_RESERVE){
-            float bulletDiff = rc.getTeamBullets() - BULLET_RESERVE;
-            int victoryPointCount = (int) (bulletDiff/rc.getVictoryPointCost());
-            rc.donate(victoryPointCount * rc.getVictoryPointCost());
-        }
-
     }
 
     private void setRandomTarget(MapLocation location) throws GameActionException {
