@@ -47,18 +47,7 @@ public class ArchonPlayer extends AbstractPlayer {
                 return;
             }
         }
-
-
-
-        if (!isAtTarget(myLocation)) {
-            while (!Utilities.tryMove(rc, myLocation.directionTo(target))) {
-                setRandomTarget(myLocation);
-            }
-            rc.setIndicatorLine(myLocation, target, 0, 0, 255);
-        }
-        else {
-            target = null;
-        }
+        
         if (rc.getTeamBullets() > BULLET_RESERVE){
             float bulletDiff = rc.getTeamBullets() - BULLET_RESERVE;
             int victoryPointCount = (int) (bulletDiff/rc.getVictoryPointCost());
