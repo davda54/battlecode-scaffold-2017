@@ -10,7 +10,7 @@ public class ArchonPlayer extends AbstractPlayer {
 
     private final int TREE_SENSE_RADIUS = 5;
     private final int TARGET_DISTANCE = 3;
-
+    private final int BULLET_RESERVE= 500;
     public ArchonPlayer(RobotController rc) throws GameActionException {
         super(rc);
         target = null;
@@ -47,6 +47,13 @@ public class ArchonPlayer extends AbstractPlayer {
                 return;
             }
         }
+        
+        if (rc.getTeamBullets() > BULLET_RESERVE){
+            float bulletDiff = rc.getTeamBullets() - BULLET_RESERVE;
+            int victoryPointCount = (int) (bulletDiff/rc.getVictoryPointCost());
+            rc.donate(victoryPointCount * rc.getVictoryPointCost());
+        }
+
     }
 
     private void setRandomTarget(MapLocation location) throws GameActionException {
@@ -61,7 +68,7 @@ public class ArchonPlayer extends AbstractPlayer {
                 !rc.isCircleOccupiedExceptByThisRobot(newLocation, newCircleRadius)) {
                 target = newLocation;
                 break;
-            }
+		    }
         }
         if (target != null) navigation.navigateTo(target);
     }
