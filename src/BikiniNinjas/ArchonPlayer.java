@@ -58,7 +58,7 @@ public class ArchonPlayer extends AbstractPlayer {
             MapLocation newLocation = rc.getLocation().add(dir, (10.0f - newCircleRadius) * (float)Math.random());
 
             if (rc.canSenseAllOfCircle(newLocation, newCircleRadius) &&
-                    !rc.isCircleOccupiedExceptByThisRobot(newLocation, newCircleRadius)) {
+                !rc.isCircleOccupiedExceptByThisRobot(newLocation, newCircleRadius)) {
                 target = newLocation;
                 break;
             }
