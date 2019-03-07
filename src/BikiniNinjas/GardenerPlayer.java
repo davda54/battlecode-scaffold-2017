@@ -2,6 +2,7 @@ package BikiniNinjas;
 
 import battlecode.common.*;
 
+import java.awt.*;
 import java.util.ArrayList;
 
 public class GardenerPlayer extends AbstractPlayer {
@@ -83,7 +84,10 @@ public class GardenerPlayer extends AbstractPlayer {
 
     private void findSpot() throws GameActionException {
         if (patience++ > MAX_PATIENCE) {
-            navigation.stopNavigation();
+            if (navigation.isNavigating()) {
+                navigation.stopNavigation();
+                return;
+            }
             searchRandomly();
             rc.setIndicatorDot(rc.getLocation(), 255, 255, 0);
             return;
