@@ -15,7 +15,7 @@ public class ScoutPlayer extends AbstractPlayer {
 
     @Override
     protected void initialize() throws GameActionException {
-        direction = Utilities.randomDirection();;
+        direction = Utilities.randomDirection();
         fruitfulTrees = new HashMap<>();
     }
 
@@ -24,24 +24,24 @@ public class ScoutPlayer extends AbstractPlayer {
         boolean hasMoved = false;
         MapLocation myLoc = rc.getLocation();
         RobotInfo[] robots = rc.senseNearbyRobots();
-        ArrayList<MapLocation> list = new ArrayList<>();
+        ArrayList<MapLocation> dangLocs = new ArrayList<>();
         for (RobotInfo ri : robots) {
             if (ri.getType().canAttack()) {
                 MapLocation location = ri.location;
-                list.add(location);
+                dangLocs.add(location);
             }
         }
-        ArrayList<MapLocation> dangLocs =  list;
+
         if(dangLocs.size() > 2) {
-            Float acc = 0f;
+            float acc = 0f;
             for (MapLocation l : dangLocs) {
-                Float aFloat = myLoc.x - l.x;
+                float aFloat = myLoc.x - l.x;
                 acc = acc + aFloat;
             }
             float dx = acc;
-            Float result = 0f;
+            float result = 0f;
             for (MapLocation l : dangLocs) {
-                Float aFloat = myLoc.y - l.y;
+                float aFloat = myLoc.y - l.y;
                 result = result + aFloat;
             }
             float dy = result;
