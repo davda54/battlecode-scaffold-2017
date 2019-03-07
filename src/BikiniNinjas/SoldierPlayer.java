@@ -42,9 +42,10 @@ public class SoldierPlayer extends AbstractPlayer {
             rc.firePentadShot(new Direction(shootDirRads));
         }
 
-
         // Move randomly
-        Utilities.tryMove(rc, Utilities.randomDirection());
+        MapLocation[] archons =  rc.getInitialArchonLocations(enemy);
+        MapLocation target = archons[0];
+        
     }
 
 
