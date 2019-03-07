@@ -15,11 +15,20 @@ public class Navigation {
         NONE
     }
 
+    enum StopFlag {
+        SUCCESS,
+        UNREACHABLE,
+        OUT_OF_PATIENCE,
+        MANUALLY_STOPPED
+    }
+
     private RobotController rc;
 
     private MapLocation targetLocation;
     private Avoidance avoidance;
-    Direction orientation;
+    private Direction orientation;
+
+    public StopFlag stopFlag;
 
     private final int DEG_RESOLUTION = 7;
 
@@ -27,6 +36,7 @@ public class Navigation {
         this.rc = rc;
         this.targetLocation = null;
         this.avoidance = Avoidance.NONE;
+        this.stopFlag = StopFlag.SUCCESS;
     }
 
     public boolean isNavigating() {
@@ -35,6 +45,12 @@ public class Navigation {
 
     public void stopNavigation() {
         targetLocation = null;
+        stopFlag = StopFlag.MANUALLY_STOPPED;
+    }
+
+    private void stopNavigation(StopFlag flag) {
+        targetLocation = null;
+        stopFlag = flag;
     }
 
     public void navigateTo(MapLocation location) throws GameActionException {
@@ -42,6 +58,7 @@ public class Navigation {
         targetLocation = location;
         avoidance = Avoidance.NONE;
         orientation = location.directionTo(targetLocation);
+
         step();
     }
 
@@ -50,7 +67,7 @@ public class Navigation {
 
         Direction dirToTarget = rc.getLocation().directionTo(targetLocation);
         if (rc.getLocation().distanceSquaredTo(targetLocation) < 0.001 || dirToTarget == null) {
-            stopNavigation();
+            stopNavigation(StopFlag.SUCCESS);
             return;
         }
 
@@ -80,11 +97,11 @@ public class Navigation {
                 rc.setIndicatorLine(rc.getLocation(), rc.getLocation().add(newOrientation, 5), 0, 0, 0);
             }
 
-            stopNavigation();
+            stopNavigation(StopFlag.UNREACHABLE);
         }
 
         if (!moveAroundObstacle()) {
-            stopNavigation();
+            stopNavigation(StopFlag.UNREACHABLE);
         }
     }
 

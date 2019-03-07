@@ -23,8 +23,9 @@ public class GardenerPlayer extends AbstractPlayer {
     private Direction moveDirection;
     private int patience;
     private MapLocation favouriteOrchardLocation;
-    private boolean orbitClockwise;
     private boolean haveNotified;
+    private boolean startedNavigation;
+    private boolean findingFirstOrchard;
 
     public GardenerPlayer(RobotController rc) throws GameActionException {
         super(rc);
@@ -37,8 +38,9 @@ public class GardenerPlayer extends AbstractPlayer {
         moveDirection = Utilities.randomDirection();
         patience = 0;
         favouriteOrchardLocation = null;
-        orbitClockwise = Math.random() > 0.5f;
+        startedNavigation = false;
         haveNotified = false;
+        findingFirstOrchard = true;
 
         treesToBeBorn = new ArrayList<>();
         treeDirections = new ArrayList<>();
@@ -100,6 +102,7 @@ public class GardenerPlayer extends AbstractPlayer {
         }
 
         favouriteOrchardLocation = selectFavouriteOrchardLocation();
+        startedNavigation = false;
         if (favouriteOrchardLocation != null) {
             goToFavouriteOrchard();
             rc.setIndicatorDot(rc.getLocation(), 0, 255, 0);
@@ -180,16 +183,18 @@ public class GardenerPlayer extends AbstractPlayer {
 
     private MapLocation selectFavouriteOrchardLocation() throws GameActionException {
         ArrayList<MapLocation> orchardLocations = bc.getOrchardLocations();
+        orchardLocations = Utilities.selectLocationsCloserThan(rc.getLocation(), 30, orchardLocations);
         ArrayList<RobotInfo> gardeners = getNearbyGardeners();
 
         for(MapLocation l: orchardLocations) {
             rc.setIndicatorDot(l, 255, 255, 255);
         }
 
-        int orchardId = gardeners.size() > 2
-                ? Utilities.argMaxDistance(rc.getLocation(), orchardLocations)
-                : Utilities.argMinDistance(rc.getLocation(), orchardLocations);
+        int orchardId = gardeners.size() <= 2 || !findingFirstOrchard
+                ? Utilities.argMinDistance(rc.getLocation(), orchardLocations)
+                : Utilities.argMaxDistance(rc.getLocation(), orchardLocations);
 
+        findingFirstOrchard = false;
         if(orchardId == -1) return null;
 
         bc.removeOrchardLocation(orchardId);
@@ -197,23 +202,28 @@ public class GardenerPlayer extends AbstractPlayer {
     }
 
     private void goToFavouriteOrchard() throws GameActionException {
-        // TODO: navigation
+
         rc.setIndicatorLine(rc.getLocation(), favouriteOrchardLocation, 0, 255, 0);
+
+        if (rc.canSenseAllOfCircle(favouriteOrchardLocation, 3.0f) && possibleTreesCount(favouriteOrchardLocation) < 5) {
+            favouriteOrchardLocation = null;
+            return;
+        }
 
         if (navigation.isNavigating()) return;
 
-        if (rc.getLocation().distanceSquaredTo(favouriteOrchardLocation) > 0.1) {
+        if (!startedNavigation) {
+            startedNavigation = true;
             navigation.navigateTo(favouriteOrchardLocation);
             return;
         }
 
-        if (possibleTreesCount(rc.getLocation()) >= 5) {
+        if (navigation.stopFlag == Navigation.StopFlag.SUCCESS && possibleTreesCount(rc.getLocation()) >= 5) {
             state = State.PLANTING_TREES;
-        } else {
-            favouriteOrchardLocation = null;
+            return;
         }
 
-        step();
+        favouriteOrchardLocation = null;
     }
 
     private ArrayList<RobotInfo> getNearbyGardeners() throws GameActionException {

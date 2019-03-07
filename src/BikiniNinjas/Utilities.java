@@ -161,4 +161,17 @@ public class Utilities {
 
         return minIndex;
     }
+
+    public static ArrayList<MapLocation> selectLocationsCloserThan(MapLocation center, float distance, ArrayList<MapLocation> locations) {
+        ArrayList<MapLocation> output = new ArrayList<>();
+        float distanceSquared = distance*distance;
+
+        for(MapLocation location: locations) {
+            if(location.distanceSquaredTo(center) <= distanceSquared) {
+                output.add(location);
+            }
+        }
+
+        return output;
+    }
 }
