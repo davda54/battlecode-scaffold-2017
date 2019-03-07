@@ -37,7 +37,8 @@ public class SoldierPlayer extends AbstractPlayer {
         BulletInfo[] dangerousBullets = (BulletInfo[]) Arrays.stream(bullets).filter(b -> Math.abs( b.dir.degreesBetween(b.location.directionTo(myLocation)))<= thresholdAngle).toArray();
         int bulletCountThreshold = 15;
         if (bulletCountThreshold <= dangerousBullets.length && rc.canFirePentadShot() ){
-            float shootDirRads = Arrays.stream(dangerousBullets).map(b->myLocation.directionTo(b.location)).map(d -> d.radians).reduce(0f, (f1,f2)-> f1+f2 )/dangerousBullets.length;
+            //average angle
+            float shootDirRads = Arrays.stream(dangerousBullets).map(b->myLocation.directionTo(b.location)).map(d -> d.radians).reduce(0f, (f1,f2)-> (float)( f1+f2 % (2*Math.PI)))/dangerousBullets.length;
             rc.firePentadShot(new Direction(shootDirRads));
         }
 
