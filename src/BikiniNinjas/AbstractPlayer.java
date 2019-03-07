@@ -10,6 +10,7 @@ public abstract class AbstractPlayer {
     protected BuildManager bm;
     protected Navigation navigation;
 
+    private final int BULLET_RESERVE = 500;
     private int[] bytecodeExecuted = new int[4];
 
     public AbstractPlayer(RobotController rc) throws GameActionException {
@@ -36,6 +37,7 @@ public abstract class AbstractPlayer {
                 navigation.step();
                 bytecodeExecuted[2] = Clock.getBytecodeNum();
 
+                donate();
                 step();
                 bytecodeExecuted[3] = Clock.getBytecodeNum();
 
@@ -64,4 +66,13 @@ public abstract class AbstractPlayer {
 
         System.out.println("ALL BYTECODE EXECUTED: " + bytecodeExecuted[3]);
     }
+
+    private void donate() throws GameActionException {
+        if (rc.getTeamBullets() > BULLET_RESERVE){
+            float bulletDiff = rc.getTeamBullets() - BULLET_RESERVE;
+            int victoryPointCount = (int) (bulletDiff/rc.getVictoryPointCost());
+            rc.donate(victoryPointCount * rc.getVictoryPointCost());
+        }
+    }
+
 }
