@@ -70,6 +70,7 @@ public class GardenerPlayer extends AbstractPlayer {
                 break;
             case PLANTING_TREES:
                 updateRecruitmentState();
+                tryRecruitment();
                 plantTrees();
                 growTrees();
                 waterTrees();
@@ -127,6 +128,12 @@ public class GardenerPlayer extends AbstractPlayer {
 
         searchRandomly();
         rc.setIndicatorDot(rc.getLocation(), 0, 0, 255);
+    }
+
+    private void tryRecruitment() throws GameActionException {
+        if(isRecruiter && Math.random() < 0.01 && rc.canBuildRobot(RobotType.SOLDIER, recruitmentDirection)) {
+            bm.build(RobotType.SOLDIER, recruitmentDirection);
+        }
     }
 
     private void updateRecruitmentState() throws GameActionException {
