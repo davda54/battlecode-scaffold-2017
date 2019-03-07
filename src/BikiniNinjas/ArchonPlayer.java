@@ -33,33 +33,36 @@ public class ArchonPlayer extends AbstractPlayer {
         MapLocation myLocation = rc.getLocation();
 
         if (myTrees.length != 0) {
-            if (target == null) setRandomTarget(myLocation);
+            if (!navigation.isNavigating()) setRandomTarget(myLocation);
+            return;
         }
-        else {
-            Direction spawnDir = (isAtTarget(myLocation) ? Utilities.randomDirection() : myLocation.directionTo(target).opposite());
+
+        if (navigation.isNavigating()) navigation.stopNavigation();
+        for (int c = 0; c < 100; c++) {
+            Direction spawnDir = Utilities.randomDirection();
             if (rc.canHireGardener(spawnDir) && 3 * RobotType.GARDENER.bulletCost <= rc.getTeamBullets()  &&
-                rc.getTreeCount() >= (bc.getCountOf(RobotType.GARDENER) - 1) * 6) {
+                    rc.getTreeCount() >= (bc.getCountOf(RobotType.GARDENER) - 1) * 6) {
                 bm.build(RobotType.GARDENER, spawnDir);
                 setRandomTarget(myLocation);
+                return;
             }
-        }
-
-        if (!isAtTarget(myLocation)) {
-            while (!Utilities.tryMove(rc, myLocation.directionTo(target))) {
-                setRandomTarget(myLocation);
-            }
-            rc.setIndicatorLine(myLocation, target, 0, 0, 255);
-        }
-        else {
-            target = null;
         }
     }
 
-    private boolean isAtTarget(MapLocation location) {
-        return target == null || location.distanceTo(target) < 0.5;
-    }
+    private void setRandomTarget(MapLocation location) throws GameActionException {
+        target = null;
+        for (int c = 0; c < 50; c++) {
 
-    private void setRandomTarget(MapLocation location) {
-        target = location.add(Utilities.randomDirection(), TARGET_DISTANCE);
+            Direction dir = Utilities.randomDirection();
+            float newCircleRadius = 3;
+            MapLocation newLocation = rc.getLocation().add(dir, (10.0f - newCircleRadius) * (float)Math.random());
+
+            if (rc.canSenseAllOfCircle(newLocation, newCircleRadius) &&
+                    !rc.isCircleOccupiedExceptByThisRobot(newLocation, newCircleRadius)) {
+                target = newLocation;
+                break;
+            }
+        }
+        if (target != null) navigation.navigateTo(target);
     }
 }
