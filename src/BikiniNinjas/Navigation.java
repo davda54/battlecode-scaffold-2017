@@ -44,7 +44,6 @@ public class Navigation {
     }
 
     public void stopNavigation() {
-
         targetLocation = null;
         stopFlag = StopFlag.MANUALLY_STOPPED;
     }
@@ -66,13 +65,16 @@ public class Navigation {
     protected void step() throws GameActionException {
         if(!isNavigating()) return;
 
-        if (rc.getLocation().distanceSquaredTo(targetLocation) < 0.001) {
+        Direction dirToTarget = rc.getLocation().directionTo(targetLocation);
+        if (rc.getLocation().distanceSquaredTo(targetLocation) < 0.001 || dirToTarget == null) {
             stopNavigation(StopFlag.SUCCESS);
+            return;
         }
 
         if (moveDirectly()) return;
 
         if (avoidance == Avoidance.NONE) {
+            orientation = dirToTarget;
             avoidance = (Math.random() < 0.5 ? Avoidance.LEFT : Avoidance.RIGHT);
 
             for(int i = 0; i <= 360 / DEG_RESOLUTION; i++) {
@@ -109,7 +111,6 @@ public class Navigation {
 
         if (!rc.canMove(dir)) return false;
         rc.move(targetLocation);
-        orientation = dir;
         avoidance = Avoidance.NONE;
 
         return true;
