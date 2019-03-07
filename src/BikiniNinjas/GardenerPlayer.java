@@ -48,6 +48,7 @@ public class GardenerPlayer extends AbstractPlayer {
         findingFirstOrchard = true;
 
         isRecruiter = true;
+        recruitmentDirection = null;
 
         treesToBeBorn = new ArrayList<>();
         treeDirections = new ArrayList<>();
@@ -68,12 +69,15 @@ public class GardenerPlayer extends AbstractPlayer {
                 findSpot();
                 break;
             case PLANTING_TREES:
+                updateRecruitmentState();
                 plantTrees();
                 growTrees();
                 waterTrees();
                 if(!haveNotified) notifyPotentialLocations();
                 break;
         }
+
+
     }
 
     private void buildFirstScout() throws GameActionException {
@@ -125,9 +129,46 @@ public class GardenerPlayer extends AbstractPlayer {
         rc.setIndicatorDot(rc.getLocation(), 0, 0, 255);
     }
 
+    private void updateRecruitmentState() throws GameActionException {
+        if(recruitmentDirection != null) rc.setIndicatorDot(rc.getLocation().add(recruitmentDirection, 2.0f), 0, 255, 255);
+        if(!isRecruiter) return;
+        if(recruitmentDirection != null) rc.setIndicatorDot(rc.getLocation().add(recruitmentDirection, 2.0f), 255, 255, 255);
+
+        if(recruitmentDirection != null && !testRecruitmentDirection(recruitmentDirection)) {
+            recruitmentDirection = null;
+        }
+
+        if(recruitmentDirection == null) {
+            for (Direction direction : treeDirections) {
+                if (testRecruitmentDirection(direction)) {
+                    recruitmentDirection = direction;
+                    break;
+                }
+            }
+        }
+
+        if(recruitmentDirection == null) {
+            isRecruiter = false;
+        }
+    }
+
+    private boolean testRecruitmentDirection(Direction direction) throws GameActionException {
+        MapLocation treeLocation = rc.getLocation().add(direction, 2.0f);
+        MapLocation nextTreeLocation = rc.getLocation().add(direction, 4.0f);
+        return rc.canSenseAllOfCircle(treeLocation, 1.0f)
+                && !rc.isCircleOccupiedExceptByThisRobot(treeLocation, 1.0f)
+                && rc.canSenseAllOfCircle(nextTreeLocation, 1.0f)
+                && !rc.isCircleOccupiedExceptByThisRobot(nextTreeLocation, 1.0f);
+    }
+
     private void plantTrees() throws GameActionException {
 
         for (Direction direction : treeDirections) {
+
+            if(recruitmentDirection != null && direction.equals(recruitmentDirection)) {
+                continue;
+            }
+
             if (rc.canPlantTree(direction)) {
                 rc.plantTree(direction);
                 int plantedTreeId = rc.senseNearbyTrees(rc.getLocation().add(direction, 2.0f), 0.1f, rc.getTeam())[0].ID;
