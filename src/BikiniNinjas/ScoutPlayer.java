@@ -2,6 +2,7 @@ package BikiniNinjas;
 
 import battlecode.common.*;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -22,17 +23,30 @@ public class ScoutPlayer extends AbstractPlayer {
 
     @Override
     protected void step() throws GameActionException {
+        boolean hasMoved = false;
+        MapLocation myLoc = rc.getLocation();
+        RobotInfo[] robots = rc.senseNearbyRobots();
+        MapLocation[] dangLocs = (MapLocation[]) Arrays.stream(robots).filter(ri->ri.getType().canAttack()).map(ri->ri.location).toArray();
+        if(dangLocs.length > 2) {
+            float dx = Arrays.stream(dangLocs).map(l -> myLoc.x - l.x).reduce(0f, (f1, f2) -> f1 + f2);
+            float dy = Arrays.stream(dangLocs).map(l -> myLoc.y - l.y).reduce(0f, (f1, f2) -> f1 + f2);
+            rc.move(new Direction(dx,dy));
+            hasMoved = true;
+        }
+
+
         updateTreeInfo(rc.senseNearbyTrees(-1, Team.NEUTRAL));
         Tuple<Integer, MapLocation> tree = nearestFruitfulTree();
 
         if(tree == null) {
-            direction = Utilities.moveRandomly(rc, direction);
+            if (!hasMoved)direction = Utilities.moveRandomly(rc, direction);
         }
         else if(rc.canInteractWithTree(tree.item1)) {
             rc.shake(tree.item1);
         }
         else {
-            Utilities.tryMove(rc, rc.getLocation().directionTo(tree.item2));
+
+            if(!hasMoved) Utilities.tryMove(rc, rc.getLocation().directionTo(tree.item2));
         }
     }
 
