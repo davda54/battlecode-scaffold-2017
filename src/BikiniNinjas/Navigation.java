@@ -27,15 +27,18 @@ public class Navigation {
     private MapLocation targetLocation;
     private Avoidance avoidance;
     private Direction orientation;
+    private int avoidanceCooldown;
 
     public StopFlag stopFlag;
 
+    private final int AVOIDANCE_COOLDOWN = 50;
     private final int DEG_RESOLUTION = 7;
 
     public Navigation(RobotController rc) {
         this.rc = rc;
         this.targetLocation = null;
         this.avoidance = Avoidance.NONE;
+        this.avoidanceCooldown = 0;
         this.stopFlag = StopFlag.SUCCESS;
     }
 
@@ -57,6 +60,7 @@ public class Navigation {
         if (location == targetLocation) return;
         targetLocation = location;
         avoidance = Avoidance.NONE;
+        avoidanceCooldown = 0;
         orientation = location.directionTo(targetLocation);
 
         step();
@@ -73,33 +77,52 @@ public class Navigation {
 
         if (moveDirectly()) return;
 
-        if (avoidance == Avoidance.NONE) {
+        if (/*avoidanceCooldown <= 0 &&*/ avoidance == Avoidance.NONE) {
+            avoidanceCooldown = AVOIDANCE_COOLDOWN;
             orientation = dirToTarget;
-            avoidance = (Math.random() < 0.5 ? Avoidance.LEFT : Avoidance.RIGHT);
 
+            Direction newLeftOrientation = null;
             for(int i = 0; i <= 360 / DEG_RESOLUTION; i++) {
+                newLeftOrientation = orientation.rotateLeftDegrees(DEG_RESOLUTION * i);
+                if(rc.canMove(newLeftOrientation)) break;
+                else newLeftOrientation = null;
+            }
 
-                Direction newOrientation;
-                if (avoidance == Avoidance.LEFT) {
-                    newOrientation = orientation.rotateLeftDegrees(DEG_RESOLUTION * i);
+            Direction newRightOrientation = null;
+            for(int i = 0; i <= 360 / DEG_RESOLUTION; i++) {
+                newRightOrientation = orientation.rotateRightDegrees(DEG_RESOLUTION * i);
+                if(rc.canMove(newRightOrientation)) break;
+                else newRightOrientation = null;
+            }
+
+            if (newLeftOrientation != null || newRightOrientation != null) {
+
+                if (newLeftOrientation == null) {
+                    orientation = newRightOrientation;
+                    avoidance = Avoidance.LEFT;
+                }
+                else if (newRightOrientation == null) {
+                    orientation = newLeftOrientation;
+                    avoidance = Avoidance.RIGHT;
+                }
+                else if (newLeftOrientation.degreesBetween(dirToTarget) > newRightOrientation.degreesBetween(dirToTarget)) {
+                    orientation = newRightOrientation;
+                    avoidance = Avoidance.RIGHT;
                 }
                 else {
-                    newOrientation = orientation.rotateRightDegrees(DEG_RESOLUTION * i);
+                    orientation = newLeftOrientation;
+                    avoidance = Avoidance.LEFT;
                 }
 
-                if(rc.canMove(newOrientation)) {
-                    rc.move(newOrientation);
-                    orientation = newOrientation;
-                    rc.setIndicatorLine(rc.getLocation(), rc.getLocation().add(newOrientation, 5), 255, 255, 255);
-                    return;
-                }
-
-                rc.setIndicatorLine(rc.getLocation(), rc.getLocation().add(newOrientation, 5), 0, 0, 0);
+                rc.move(orientation);
+                rc.setIndicatorLine(rc.getLocation(), rc.getLocation().add(orientation, 4), 255, 255, 255);
+                return;
             }
 
             stopNavigation(StopFlag.UNREACHABLE);
         }
 
+        avoidanceCooldown--;
         if (!moveAroundObstacle()) {
             stopNavigation(StopFlag.UNREACHABLE);
         }
@@ -108,6 +131,8 @@ public class Navigation {
     private boolean moveDirectly() throws GameActionException {
 
         Direction dir = rc.getLocation().directionTo(targetLocation);
+
+        if (orientation != null && Math.abs(orientation.degreesBetween(dir)) > 120) return false;
 
         if (!rc.canMove(dir)) return false;
         rc.move(targetLocation);
