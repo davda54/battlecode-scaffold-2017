@@ -137,6 +137,8 @@ public class Utilities {
         float maxDistance = Float.NEGATIVE_INFINITY;
 
         for (int i = 0; i < to.size(); i++) {
+            if(to.get(i) == null) continue;
+
             float distance = to.get(i).distanceSquaredTo(from);
             if(distance > maxDistance) {
                 maxDistance = distance;
@@ -152,6 +154,8 @@ public class Utilities {
         float minDistance = Float.POSITIVE_INFINITY;
 
         for (int i = 0; i < to.size(); i++) {
+            if(to.get(i) == null) continue;
+
             float distance = to.get(i).distanceSquaredTo(from);
             if(distance < minDistance) {
                 minDistance = distance;
