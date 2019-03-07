@@ -82,8 +82,8 @@ public class Broadcast {
         float last_x = rc.readBroadcastFloat(start + length - 2);
         float last_y = rc.readBroadcastFloat(start + length - 1);
 
-        rc.broadcastFloat(start + idx, last_x);
-        rc.broadcastFloat(start + idx + 1, last_y);
+        rc.broadcastFloat(start + 2*idx, last_x);
+        rc.broadcastFloat(start + 2*idx + 1, last_y);
 
         rc.broadcastFloat(start + length - 2, 0);
         rc.broadcastFloat(start + length - 1, 0);

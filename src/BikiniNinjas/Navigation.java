@@ -46,6 +46,7 @@ public class Navigation {
     }
 
     protected void step() throws GameActionException {
+        if(!isNavigating()) return;
 
         if (rc.getLocation().distanceSquaredTo(targetLocation) < 0.001) {
             stopNavigation();
@@ -56,8 +57,7 @@ public class Navigation {
         if (avoidance == Avoidance.NONE) {
             avoidance = (Math.random() < 0.5 ? Avoidance.LEFT : Avoidance.RIGHT);
 
-            int i = 0;
-            while(i <= 360 / DEG_RESOLUTION) {
+            for(int i = 0; i <= 360 / DEG_RESOLUTION; i++) {
 
                 Direction newOrientation;
                 if (avoidance == Avoidance.LEFT) {
@@ -70,10 +70,11 @@ public class Navigation {
                 if(rc.canMove(newOrientation)) {
                     rc.move(newOrientation);
                     orientation = newOrientation;
+                    rc.setIndicatorLine(rc.getLocation(), rc.getLocation().add(newOrientation, 5), 255, 255, 255);
                     return;
                 }
 
-                i++;
+                rc.setIndicatorLine(rc.getLocation(), rc.getLocation().add(newOrientation, 5), 0, 0, 0);
             }
 
             stopNavigation();
@@ -90,6 +91,7 @@ public class Navigation {
 
         if (!rc.canMove(dir)) return false;
         rc.move(targetLocation);
+        orientation = dir;
         avoidance = Avoidance.NONE;
 
         return true;
@@ -97,25 +99,26 @@ public class Navigation {
 
     private boolean moveAroundObstacle() throws GameActionException {
 
-        int i = 0;
-        while(i <= 360 / DEG_RESOLUTION) {
+        for (int i = 0; i <= 360 / DEG_RESOLUTION; i++) {
 
             Direction newOrientation;
             if (avoidance == Avoidance.LEFT) {
                 newOrientation = orientation.rotateLeftDegrees(DEG_RESOLUTION * i - 90);
-            }
-            else {
+            } else {
                 newOrientation = orientation.rotateRightDegrees(DEG_RESOLUTION * i - 90);
             }
 
-            if(rc.canMove(newOrientation)) {
+            if (rc.canMove(newOrientation)) {
                 rc.move(newOrientation);
                 orientation = newOrientation;
+                rc.setIndicatorLine(rc.getLocation(), rc.getLocation().add(newOrientation, 5), 255, 255, 255);
+
                 return true;
             }
 
-            i++;
+            rc.setIndicatorLine(rc.getLocation(), rc.getLocation().add(newOrientation, 5), 0, 0, 0);
         }
+
         return false;
     }
 }
