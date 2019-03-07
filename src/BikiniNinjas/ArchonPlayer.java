@@ -38,7 +38,7 @@ public class ArchonPlayer extends AbstractPlayer {
         }
 
         if (navigation.isNavigating()) navigation.stopNavigation();
-        for (int c = 0; c < 100; c++) {
+        for (int c = 0; c < 10; c++) {
             Direction spawnDir = Utilities.randomDirection();
             if (rc.canHireGardener(spawnDir) && 3 * RobotType.GARDENER.bulletCost <= rc.getTeamBullets()  &&
                     rc.getTreeCount() >= (bc.getCountOf(RobotType.GARDENER) - 1) * 6) {
@@ -65,7 +65,7 @@ public class ArchonPlayer extends AbstractPlayer {
             MapLocation newLocation = rc.getLocation().add(dir, (10.0f - newCircleRadius) * (float)Math.random());
 
             if (rc.canSenseAllOfCircle(newLocation, newCircleRadius) &&
-                    !rc.isCircleOccupiedExceptByThisRobot(newLocation, newCircleRadius)) {
+                !rc.isCircleOccupiedExceptByThisRobot(newLocation, newCircleRadius)) {
                 target = newLocation;
                 break;
 		    }
