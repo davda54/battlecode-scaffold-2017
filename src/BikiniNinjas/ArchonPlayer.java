@@ -1,7 +1,6 @@
 package BikiniNinjas;
 
 import battlecode.common.*;
-import com.sun.javafx.geom.Vec3f;
 
 import java.util.Locale;
 

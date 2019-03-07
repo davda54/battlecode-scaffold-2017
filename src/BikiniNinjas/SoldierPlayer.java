@@ -2,6 +2,9 @@ package BikiniNinjas;
 
 import battlecode.common.*;
 
+import java.util.Arrays;
+import java.util.List;
+
 public class SoldierPlayer extends AbstractPlayer {
 
     public SoldierPlayer(RobotController rc) throws GameActionException {
@@ -28,8 +31,21 @@ public class SoldierPlayer extends AbstractPlayer {
                 rc.fireSingleShot(rc.getLocation().directionTo(robots[0].location));
             }
         }
+        //shooting other bots is preferred, otherwise shoot in direction of dangerous bullets
+        double thresholdAngle = 15;
+        BulletInfo[] bullets = rc.senseNearbyBullets();
+        BulletInfo[] dangerousBullets = (BulletInfo[]) Arrays.stream(bullets).filter(b -> Math.abs( b.dir.degreesBetween(b.location.directionTo(myLocation)))<= thresholdAngle).toArray();
+        int bulletCountThreshold = 15;
+        if (bulletCountThreshold <= dangerousBullets.length && rc.canFirePentadShot() ){
+            //average angle
+            float shootDirRads = Arrays.stream(dangerousBullets).map(b->myLocation.directionTo(b.location)).map(d -> d.radians).reduce(0f, (f1,f2)-> (float)( f1+f2 % (2*Math.PI)))/dangerousBullets.length;
+            rc.firePentadShot(new Direction(shootDirRads));
+        }
+
 
         // Move randomly
         Utilities.tryMove(rc, Utilities.randomDirection());
     }
+
+
 }
