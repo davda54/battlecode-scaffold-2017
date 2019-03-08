@@ -126,7 +126,7 @@ public class Navigation {
 
                 collisionMemory.add(new Tuple<>(rc.getLocation(), avoidance));
                 rc.move(orientation);
-                //rc.setIndicatorLine(rc.getLocation(), rc.getLocation().add(orientation, 4), 255, 255, 255);
+                rc.setIndicatorLine(rc.getLocation(), rc.getLocation().add(orientation, 4), 255, 255, 255);
                 return;
             }
 
@@ -176,12 +176,12 @@ public class Navigation {
             if (rc.canMove(newOrientation)) {
                 rc.move(newOrientation);
                 orientation = newOrientation;
-                //rc.setIndicatorLine(rc.getLocation(), rc.getLocation().add(newOrientation, 5), 255, 255, 255);
+                rc.setIndicatorLine(rc.getLocation(), rc.getLocation().add(newOrientation, 5.0f), 255, 255, 255);
 
                 return true;
             }
 
-            //rc.setIndicatorLine(rc.getLocation(), rc.getLocation().add(newOrientation, 5), 0, 0, 0);
+            if(i%4 == 0) rc.setIndicatorLine(rc.getLocation(), rc.getLocation().add(newOrientation, 2f), 0, 0, 0);
         }
 
         return false;

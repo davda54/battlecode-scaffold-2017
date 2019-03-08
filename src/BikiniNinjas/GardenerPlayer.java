@@ -1,11 +1,9 @@
 package BikiniNinjas;
 
 import battlecode.common.*;
-import battlecode.schema.GameMap;
-import battlecode.server.GameInfo;
 
-import java.awt.*;
 import java.util.ArrayList;
+import java.util.Collections;
 
 public class GardenerPlayer extends AbstractPlayer {
 
@@ -31,6 +29,8 @@ public class GardenerPlayer extends AbstractPlayer {
 
     private boolean isRecruiter;
     private Direction recruitmentDirection;
+    private int recruitmentPlaceHiddenTimeout;
+    private final int RECRUITMENT_PLACE_HIDDEN_TIMEOUT = 30;
 
     public GardenerPlayer(RobotController rc) throws GameActionException {
         super(rc);
@@ -49,12 +49,14 @@ public class GardenerPlayer extends AbstractPlayer {
 
         isRecruiter = true;
         recruitmentDirection = null;
+        recruitmentPlaceHiddenTimeout = RECRUITMENT_PLACE_HIDDEN_TIMEOUT;
 
         treesToBeBorn = new ArrayList<>();
         treeDirections = new ArrayList<>();
         for (int i = 0; i < 6; i++) {
             treeDirections.add(Direction.NORTH.rotateLeftDegrees(i * 60));
         }
+        Collections.shuffle(treeDirections);
 
         plantedTreeIds = new ArrayList<>();
     }
@@ -103,13 +105,13 @@ public class GardenerPlayer extends AbstractPlayer {
                 return;
             }
             searchRandomly();
-            //rc.setIndicatorDot(rc.getLocation(), 255, 255, 0);
+            rc.setIndicatorDot(rc.getLocation(), 255, 255, 0);
             return;
         }
 
         if (favouriteOrchardLocation != null) {
             goToFavouriteOrchard();
-            //rc.setIndicatorDot(rc.getLocation(), 0, 255, 0);
+            rc.setIndicatorDot(rc.getLocation(), 0, 255, 0);
             return;
         }
 
@@ -117,7 +119,7 @@ public class GardenerPlayer extends AbstractPlayer {
         startedNavigation = false;
         if (favouriteOrchardLocation != null) {
             goToFavouriteOrchard();
-            //rc.setIndicatorDot(rc.getLocation(), 0, 255, 0);
+            rc.setIndicatorDot(rc.getLocation(), 0, 255, 0);
             return;
         }
 
@@ -127,7 +129,7 @@ public class GardenerPlayer extends AbstractPlayer {
         }
 
         searchRandomly();
-        //rc.setIndicatorDot(rc.getLocation(), 0, 0, 255);
+        rc.setIndicatorDot(rc.getLocation(), 0, 0, 255);
     }
 
     private void tryRecruitment() throws GameActionException {
@@ -137,12 +139,17 @@ public class GardenerPlayer extends AbstractPlayer {
     }
 
     private void updateRecruitmentState() throws GameActionException {
-        //if(recruitmentDirection != null) rc.setIndicatorDot(rc.getLocation().add(recruitmentDirection, 2.0f), 0, 255, 255);
+        if(recruitmentDirection != null) rc.setIndicatorDot(rc.getLocation().add(recruitmentDirection, 2.0f), 0, 255, 255);
         if(!isRecruiter) return;
-        //if(recruitmentDirection != null) rc.setIndicatorDot(rc.getLocation().add(recruitmentDirection, 2.0f), 255, 255, 255);
+        if(recruitmentDirection != null) rc.setIndicatorDot(rc.getLocation().add(recruitmentDirection, 2.0f), 255, 255, 255);
 
         if(recruitmentDirection != null && !testRecruitmentDirection(recruitmentDirection)) {
-            recruitmentDirection = null;
+            recruitmentPlaceHiddenTimeout--;
+            if(recruitmentPlaceHiddenTimeout <= 0) {
+                recruitmentDirection = null;
+            }
+        } else {
+            recruitmentPlaceHiddenTimeout = RECRUITMENT_PLACE_HIDDEN_TIMEOUT;
         }
 
         if(recruitmentDirection == null) {
@@ -209,7 +216,7 @@ public class GardenerPlayer extends AbstractPlayer {
                 dryTreeId = treeId;
             }
 
-            //rc.setIndicatorDot(tree.location, 0, 255, 0);
+            rc.setIndicatorDot(tree.location, 0, 255, 0);
         }
 
         if (dryTreeId != -1) {
@@ -224,7 +231,7 @@ public class GardenerPlayer extends AbstractPlayer {
             MapLocation treeLocation = center.add(direction, 2.0f);
 
             if (rc.canSenseAllOfCircle(treeLocation, 1.0f) && !rc.isCircleOccupiedExceptByThisRobot(treeLocation, 1.0f)) {
-                //rc.setIndicatorDot(treeLocation, 255, 0, 255);
+                rc.setIndicatorDot(treeLocation, 255, 0, 255);
                 counter++;
             }
         }
@@ -264,7 +271,7 @@ public class GardenerPlayer extends AbstractPlayer {
 
     private void goToFavouriteOrchard() throws GameActionException {
 
-        //rc.setIndicatorLine(rc.getLocation(), favouriteOrchardLocation, 0, 255, 0);
+        rc.setIndicatorLine(rc.getLocation(), favouriteOrchardLocation, 0, 255, 0);
 
         if (rc.canSenseAllOfCircle(favouriteOrchardLocation, 3.0f) && possibleTreesCount(favouriteOrchardLocation) < 5) {
             favouriteOrchardLocation = null;
@@ -324,7 +331,7 @@ public class GardenerPlayer extends AbstractPlayer {
 
             if (possibleTreesCount(center) >= 4) {
                 potentialLocations.add(center);
-                //rc.setIndicatorDot(center, 255, 255, 255);
+                rc.setIndicatorDot(center, 255, 255, 255);
             }
         }
 
