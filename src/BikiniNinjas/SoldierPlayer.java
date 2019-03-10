@@ -7,9 +7,12 @@ import java.util.Arrays;
 import java.util.List;
 
 public class SoldierPlayer extends AbstractPlayer {
+    MapLocation[] archonLocs;
+    int archonIndex = 0;
 
     public SoldierPlayer(RobotController rc) throws GameActionException {
         super(rc);
+        archonLocs = rc.getInitialArchonLocations(enemy);
     }
 
     @Override
@@ -19,6 +22,7 @@ public class SoldierPlayer extends AbstractPlayer {
 
     @Override
     protected void step() throws GameActionException {
+
         MapLocation myLocation = rc.getLocation();
 
         // See if there are any nearby enemy robots
@@ -43,7 +47,7 @@ public class SoldierPlayer extends AbstractPlayer {
         }
         List<BulletInfo> dangerousBullets = list;
         int bulletCountThreshold = 15;
-        if (bulletCountThreshold <= dangerousBullets.size() && rc.canFirePentadShot() ){
+        if (bulletCountThreshold <= dangerousBullets.size() && rc.canFirePentadShot()) {
             //average angle
             Float acc = 0f;
             for (BulletInfo b : dangerousBullets) {
@@ -51,16 +55,25 @@ public class SoldierPlayer extends AbstractPlayer {
                 Float radians = d.radians;
                 acc = acc + radians;
             }
-            float shootDirRads = acc /dangerousBullets.size();
+            float shootDirRads = acc / dangerousBullets.size();
             rc.firePentadShot(new Direction(shootDirRads));
         }
 
         if (!navigation.isNavigating()) {
-            // Move randomly
-            MapLocation[] archons = rc.getInitialArchonLocations(enemy);
-            MapLocation target = archons[0];
+
+            MapLocation target = archonLocs[archonIndex];
             navigation.navigateTo(target);
+        } else {
+            if (myLocation.distanceTo(archonLocs[archonIndex]) <= 15 && robots.length == 0) {
+                archonIndex = (archonIndex + 1) % archonLocs.length;
+                navigation.navigateTo(archonLocs[archonIndex]);
+            }
+
+
         }
+        //TODO komunikace? (jeden soldier zaveli, jdeme na dalsiho archona, ostatni nasleduji...)
+        //TODO attack/defense mod?
+        //TODO Archon request defense?
     }
 
 
