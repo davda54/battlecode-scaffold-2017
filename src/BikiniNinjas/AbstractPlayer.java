@@ -2,6 +2,9 @@ package BikiniNinjas;
 
 import battlecode.common.*;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+
 public abstract class AbstractPlayer {
 
     protected RobotController rc;
@@ -68,11 +71,18 @@ public abstract class AbstractPlayer {
     }
 
     private void donate() throws GameActionException {
-        if (rc.getTeamBullets() > BULLET_RESERVE){
+        if (rc.getTeamBullets() > BULLET_RESERVE) {
             float bulletDiff = rc.getTeamBullets() - BULLET_RESERVE;
             int victoryPointCount = (int) (bulletDiff/rc.getVictoryPointCost());
             rc.donate(victoryPointCount * rc.getVictoryPointCost());
         }
+    }
+
+    protected Direction directionTowardEnemy() throws GameActionException {
+        MapLocation[] archonLocations = rc.getInitialArchonLocations(enemy);
+        int mostDistantArchonIndex = Utilities.argMaxDistance(rc.getLocation(), Arrays.asList(archonLocations));
+
+        return rc.getLocation().directionTo(archonLocations[mostDistantArchonIndex]);
     }
 
 }

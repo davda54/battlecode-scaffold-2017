@@ -3,6 +3,7 @@ package BikiniNinjas;
 import battlecode.common.*;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 public class Utilities {
@@ -133,7 +134,7 @@ public class Utilities {
         return rand.nextInt(max);
     }
 
-    public static int argMaxDistance(MapLocation from, ArrayList<MapLocation> to) {
+    public static int argMaxDistance(MapLocation from, List<MapLocation> to) {
         int maxIndex = -1;
         float maxDistance = Float.NEGATIVE_INFINITY;
 
@@ -150,7 +151,7 @@ public class Utilities {
         return maxIndex;
     }
 
-    public static int argMinDistance(MapLocation from, ArrayList<MapLocation> to) {
+    public static int argMinDistance(MapLocation from, List<MapLocation> to) {
         int minIndex = -1;
         float minDistance = Float.POSITIVE_INFINITY;
 

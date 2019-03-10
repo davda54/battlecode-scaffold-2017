@@ -18,11 +18,14 @@ public class ArchonPlayer extends AbstractPlayer {
 
     @Override
     protected void initialize() throws GameActionException {
-        Direction direction = Utilities.randomDirection();
-        while(!rc.canHireGardener(direction)) {
-            direction = Utilities.randomDirection();
+        Direction direction = directionTowardEnemy();
+        for (int i = 0; i < 36; i++) {
+            if (rc.canHireGardener(direction)) {
+                bm.build(RobotType.GARDENER, direction);
+                break;
+            }
+            direction = direction.rotateLeftDegrees(10);
         }
-        rc.hireGardener(direction);
     }
 
     @Override
@@ -58,7 +61,8 @@ public class ArchonPlayer extends AbstractPlayer {
             MapLocation newLocation = rc.getLocation().add(dir, (10.0f - newCircleRadius) * (float)Math.random());
 
             if (rc.canSenseAllOfCircle(newLocation, newCircleRadius) &&
-                !rc.isCircleOccupiedExceptByThisRobot(newLocation, newCircleRadius)) {
+                    rc.onTheMap(newLocation, newCircleRadius) &&
+                    !rc.isCircleOccupiedExceptByThisRobot(newLocation, newCircleRadius)) {
                 target = newLocation;
                 break;
 		    }

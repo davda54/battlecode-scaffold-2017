@@ -16,7 +16,7 @@ public class ScoutPlayer extends AbstractPlayer {
 
     @Override
     protected void initialize() throws GameActionException {
-        direction = Utilities.randomDirection();
+        direction = directionTowardEnemy();
         fruitfulTrees = new HashMap<>();
     }
 

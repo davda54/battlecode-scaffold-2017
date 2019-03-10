@@ -53,10 +53,13 @@ public class GardenerPlayer extends AbstractPlayer {
 
         treesToBeBorn = new ArrayList<>();
         treeDirections = new ArrayList<>();
+
         for (int i = 0; i < 6; i++) {
             treeDirections.add(Direction.NORTH.rotateLeftDegrees(i * 60));
         }
-        Collections.shuffle(treeDirections);
+
+        Direction directionToEnemy = directionTowardEnemy();
+        treeDirections.sort((a,b) -> Float.compare(Math.abs(a.radiansBetween(directionToEnemy)), Math.abs(b.radiansBetween(directionToEnemy))));
 
         plantedTreeIds = new ArrayList<>();
     }
@@ -85,7 +88,7 @@ public class GardenerPlayer extends AbstractPlayer {
 
     private void buildFirstScout() throws GameActionException {
         if (bc.getCountOf(RobotType.SCOUT) == 0) {
-            Direction direction = Utilities.randomDirection();
+            Direction direction = directionTowardEnemy();
             for (int i = 0; i < 36; i++) {
                 if (rc.canBuildRobot(RobotType.SCOUT, direction)) {
                     bm.build(RobotType.SCOUT, direction);
@@ -230,7 +233,9 @@ public class GardenerPlayer extends AbstractPlayer {
         for (Direction direction : treeDirections) {
             MapLocation treeLocation = center.add(direction, 2.0f);
 
-            if (rc.canSenseAllOfCircle(treeLocation, 1.0f) && !rc.isCircleOccupiedExceptByThisRobot(treeLocation, 1.0f)) {
+            if (rc.canSenseAllOfCircle(treeLocation, 1.0f)
+                    && rc.onTheMap(treeLocation, 1.0f)
+                    && !rc.isCircleOccupiedExceptByThisRobot(treeLocation, 1.0f)) {
                 rc.setIndicatorDot(treeLocation, 255, 0, 255);
                 counter++;
             }
@@ -240,7 +245,7 @@ public class GardenerPlayer extends AbstractPlayer {
     }
 
     private void searchRandomly() throws GameActionException {
-        if (possibleTreesCount(rc.getLocation()) >= 5 - patience / MAX_PATIENCE) {
+        if ((!findingFirstOrchard || patience > 20) && possibleTreesCount(rc.getLocation()) >= 6 - patience / MAX_PATIENCE) {
             state = State.PLANTING_TREES;
             step();
             return;
@@ -262,8 +267,8 @@ public class GardenerPlayer extends AbstractPlayer {
                 ? Utilities.argMinDistance(rc.getLocation(), orchardLocations)
                 : Utilities.argMaxDistance(rc.getLocation(), orchardLocations);
 
-        findingFirstOrchard = false;
         if(orchardId == -1) return null;
+        findingFirstOrchard = false;
 
         bc.removeOrchardLocation(orchardId);
         return orchardLocations.get(orchardId);
