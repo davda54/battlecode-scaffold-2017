@@ -35,7 +35,7 @@ public class Navigation {
     public StopFlag stopFlag;
 
     private final int AVOIDANCE_COOLDOWN = 50;
-    private final int DEG_RESOLUTION = 7;
+    private final int DEG_RESOLUTION = 11;
 
     public Navigation(RobotController rc) {
         this.rc = rc;
@@ -87,14 +87,14 @@ public class Navigation {
             orientation = dirToTarget;
 
             Direction newLeftOrientation = null;
-            for(int i = 0; i <= 360 / DEG_RESOLUTION; i++) {
+            for(int i = 0; i <= 180 / DEG_RESOLUTION; i++) {
                 newLeftOrientation = orientation.rotateLeftDegrees(DEG_RESOLUTION * i);
                 if(rc.canMove(newLeftOrientation)) break;
                 else newLeftOrientation = null;
             }
 
             Direction newRightOrientation = null;
-            for(int i = 0; i <= 360 / DEG_RESOLUTION; i++) {
+            for(int i = 0; i <= 180 / DEG_RESOLUTION; i++) {
                 newRightOrientation = orientation.rotateRightDegrees(DEG_RESOLUTION * i);
                 if(rc.canMove(newRightOrientation)) break;
                 else newRightOrientation = null;
