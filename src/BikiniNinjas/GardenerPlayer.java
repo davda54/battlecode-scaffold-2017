@@ -136,7 +136,7 @@ public class GardenerPlayer extends AbstractPlayer {
     }
 
     private void tryRecruitment() throws GameActionException {
-        if(isRecruiter && Math.random() < 0.01 && rc.canBuildRobot(RobotType.SOLDIER, recruitmentDirection)) {
+        if(isRecruiter && Math.random() < 0.01 && rc.canBuildRobot(RobotType.SOLDIER, recruitmentDirection) && recruitmentPlaceHiddenTimeout == RECRUITMENT_PLACE_HIDDEN_TIMEOUT) {
             bm.build(RobotType.SOLDIER, recruitmentDirection);
         }
     }
@@ -186,7 +186,7 @@ public class GardenerPlayer extends AbstractPlayer {
                 continue;
             }
 
-            if (rc.canPlantTree(direction)) {
+            if (rc.canPlantTree(direction) && !Utilities.isSomeoneStandingInLocation(rc, rc.getLocation().add(direction, 4.0f), 1.0f)) {
                 rc.plantTree(direction);
                 int plantedTreeId = rc.senseNearbyTrees(rc.getLocation().add(direction, 2.0f), 0.1f, rc.getTeam())[0].ID;
                 treesToBeBorn.add(new Tuple<>(plantedTreeId, 80));
@@ -260,7 +260,7 @@ public class GardenerPlayer extends AbstractPlayer {
         ArrayList<RobotInfo> gardeners = getNearbyGardeners();
 
         for(MapLocation l: orchardLocations) {
-            //if(l != null) rc.setIndicatorDot(l, 255, 255, 255);
+            if(l != null) rc.setIndicatorDot(l, 255, 255, 255);
         }
 
         int orchardId = gardeners.size() <= 2 || !findingFirstOrchard
@@ -343,7 +343,7 @@ public class GardenerPlayer extends AbstractPlayer {
         bc.addOrchardLocations(potentialLocations);
     }
 
-    public static void nullifyLocationsCloserThan(MapLocation center, float distance, ArrayList<MapLocation> locations) {
+    private void nullifyLocationsCloserThan(MapLocation center, float distance, ArrayList<MapLocation> locations) {
         float distanceSquared = distance*distance;
 
         for(int i = 0; i < locations.size(); i++) {
