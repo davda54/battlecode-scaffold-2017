@@ -10,7 +10,7 @@ public class ArchonPlayer extends AbstractPlayer {
 
     private final int TREE_SENSE_RADIUS = 5;
     private final int TARGET_DISTANCE = 3;
-    private final int BULLET_RESERVE= 500;
+
     public ArchonPlayer(RobotController rc) throws GameActionException {
         super(rc);
         target = null;
@@ -18,11 +18,14 @@ public class ArchonPlayer extends AbstractPlayer {
 
     @Override
     protected void initialize() throws GameActionException {
-        Direction direction = Utilities.randomDirection();
-        while(!rc.canHireGardener(direction)) {
-            direction = Utilities.randomDirection();
+        Direction direction = directionTowardEnemy();
+        for (int i = 0; i < 36; i++) {
+            if (rc.canHireGardener(direction)) {
+                bm.build(RobotType.GARDENER, direction);
+                break;
+            }
+            direction = direction.rotateLeftDegrees(10);
         }
-        rc.hireGardener(direction);
     }
 
     @Override
@@ -44,16 +47,9 @@ public class ArchonPlayer extends AbstractPlayer {
                     rc.getTreeCount() >= (bc.getCountOf(RobotType.GARDENER) - 1) * 6) {
                 bm.build(RobotType.GARDENER, spawnDir);
                 setRandomTarget(myLocation);
-                return;
+                break;
             }
         }
-
-        if (rc.getTeamBullets() > BULLET_RESERVE){
-            float bulletDiff = rc.getTeamBullets() - BULLET_RESERVE;
-            int victoryPointCount = (int) (bulletDiff/rc.getVictoryPointCost());
-            rc.donate(victoryPointCount * rc.getVictoryPointCost());
-        }
-
     }
 
     private void setRandomTarget(MapLocation location) throws GameActionException {
@@ -65,7 +61,8 @@ public class ArchonPlayer extends AbstractPlayer {
             MapLocation newLocation = rc.getLocation().add(dir, (10.0f - newCircleRadius) * (float)Math.random());
 
             if (rc.canSenseAllOfCircle(newLocation, newCircleRadius) &&
-                !rc.isCircleOccupiedExceptByThisRobot(newLocation, newCircleRadius)) {
+                    rc.onTheMap(newLocation, newCircleRadius) &&
+                    !rc.isCircleOccupiedExceptByThisRobot(newLocation, newCircleRadius)) {
                 target = newLocation;
                 break;
 		    }

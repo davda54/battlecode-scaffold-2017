@@ -2,6 +2,7 @@ package BikiniNinjas;
 
 import battlecode.common.*;
 
+import javax.rmi.CORBA.Util;
 import java.util.*;
 
 public class ScoutPlayer extends AbstractPlayer {
@@ -15,7 +16,7 @@ public class ScoutPlayer extends AbstractPlayer {
 
     @Override
     protected void initialize() throws GameActionException {
-        direction = Utilities.randomDirection();
+        direction = directionTowardEnemy();
         fruitfulTrees = new HashMap<>();
     }
 
@@ -45,7 +46,7 @@ public class ScoutPlayer extends AbstractPlayer {
                 result = result + aFloat;
             }
             float dy = result;
-            rc.move(new Direction(dx,dy));
+            Utilities.tryMove(rc, new Direction(dx,dy));
             hasMoved = true;
         }
 

@@ -1,11 +1,9 @@
 package BikiniNinjas;
 
 import battlecode.common.*;
-import battlecode.schema.GameMap;
-import battlecode.server.GameInfo;
 
-import java.awt.*;
 import java.util.ArrayList;
+import java.util.Collections;
 
 public class GardenerPlayer extends AbstractPlayer {
 
@@ -31,6 +29,8 @@ public class GardenerPlayer extends AbstractPlayer {
 
     private boolean isRecruiter;
     private Direction recruitmentDirection;
+    private int recruitmentPlaceHiddenTimeout;
+    private final int RECRUITMENT_PLACE_HIDDEN_TIMEOUT = 30;
 
     public GardenerPlayer(RobotController rc) throws GameActionException {
         super(rc);
@@ -49,12 +49,17 @@ public class GardenerPlayer extends AbstractPlayer {
 
         isRecruiter = true;
         recruitmentDirection = null;
+        recruitmentPlaceHiddenTimeout = RECRUITMENT_PLACE_HIDDEN_TIMEOUT;
 
         treesToBeBorn = new ArrayList<>();
         treeDirections = new ArrayList<>();
+
         for (int i = 0; i < 6; i++) {
             treeDirections.add(Direction.NORTH.rotateLeftDegrees(i * 60));
         }
+
+        Direction directionToEnemy = directionTowardEnemy();
+        treeDirections.sort((a,b) -> Float.compare(Math.abs(a.radiansBetween(directionToEnemy)), Math.abs(b.radiansBetween(directionToEnemy))));
 
         plantedTreeIds = new ArrayList<>();
     }
@@ -70,6 +75,7 @@ public class GardenerPlayer extends AbstractPlayer {
                 break;
             case PLANTING_TREES:
                 updateRecruitmentState();
+                tryRecruitment();
                 plantTrees();
                 growTrees();
                 waterTrees();
@@ -82,7 +88,7 @@ public class GardenerPlayer extends AbstractPlayer {
 
     private void buildFirstScout() throws GameActionException {
         if (bc.getCountOf(RobotType.SCOUT) == 0) {
-            Direction direction = Utilities.randomDirection();
+            Direction direction = directionTowardEnemy();
             for (int i = 0; i < 36; i++) {
                 if (rc.canBuildRobot(RobotType.SCOUT, direction)) {
                     bm.build(RobotType.SCOUT, direction);
@@ -129,13 +135,24 @@ public class GardenerPlayer extends AbstractPlayer {
         rc.setIndicatorDot(rc.getLocation(), 0, 0, 255);
     }
 
+    private void tryRecruitment() throws GameActionException {
+        if(isRecruiter && Math.random() < 0.01 && rc.canBuildRobot(RobotType.SOLDIER, recruitmentDirection)) {
+            bm.build(RobotType.SOLDIER, recruitmentDirection);
+        }
+    }
+
     private void updateRecruitmentState() throws GameActionException {
         if(recruitmentDirection != null) rc.setIndicatorDot(rc.getLocation().add(recruitmentDirection, 2.0f), 0, 255, 255);
         if(!isRecruiter) return;
         if(recruitmentDirection != null) rc.setIndicatorDot(rc.getLocation().add(recruitmentDirection, 2.0f), 255, 255, 255);
 
         if(recruitmentDirection != null && !testRecruitmentDirection(recruitmentDirection)) {
-            recruitmentDirection = null;
+            recruitmentPlaceHiddenTimeout--;
+            if(recruitmentPlaceHiddenTimeout <= 0) {
+                recruitmentDirection = null;
+            }
+        } else {
+            recruitmentPlaceHiddenTimeout = RECRUITMENT_PLACE_HIDDEN_TIMEOUT;
         }
 
         if(recruitmentDirection == null) {
@@ -216,7 +233,9 @@ public class GardenerPlayer extends AbstractPlayer {
         for (Direction direction : treeDirections) {
             MapLocation treeLocation = center.add(direction, 2.0f);
 
-            if (rc.canSenseAllOfCircle(treeLocation, 1.0f) && !rc.isCircleOccupiedExceptByThisRobot(treeLocation, 1.0f)) {
+            if (rc.canSenseAllOfCircle(treeLocation, 1.0f)
+                    && rc.onTheMap(treeLocation, 1.0f)
+                    && !rc.isCircleOccupiedExceptByThisRobot(treeLocation, 1.0f)) {
                 rc.setIndicatorDot(treeLocation, 255, 0, 255);
                 counter++;
             }
@@ -226,7 +245,7 @@ public class GardenerPlayer extends AbstractPlayer {
     }
 
     private void searchRandomly() throws GameActionException {
-        if (possibleTreesCount(rc.getLocation()) >= 5 - patience / MAX_PATIENCE) {
+        if ((!findingFirstOrchard || patience > 20) && possibleTreesCount(rc.getLocation()) >= 6 - patience / MAX_PATIENCE) {
             state = State.PLANTING_TREES;
             step();
             return;
@@ -241,15 +260,15 @@ public class GardenerPlayer extends AbstractPlayer {
         ArrayList<RobotInfo> gardeners = getNearbyGardeners();
 
         for(MapLocation l: orchardLocations) {
-            if(l != null) rc.setIndicatorDot(l, 255, 255, 255);
+            //if(l != null) rc.setIndicatorDot(l, 255, 255, 255);
         }
 
         int orchardId = gardeners.size() <= 2 || !findingFirstOrchard
                 ? Utilities.argMinDistance(rc.getLocation(), orchardLocations)
                 : Utilities.argMaxDistance(rc.getLocation(), orchardLocations);
 
-        findingFirstOrchard = false;
         if(orchardId == -1) return null;
+        findingFirstOrchard = false;
 
         bc.removeOrchardLocation(orchardId);
         return orchardLocations.get(orchardId);
