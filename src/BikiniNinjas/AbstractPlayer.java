@@ -44,7 +44,7 @@ public abstract class AbstractPlayer {
                 step();
                 bytecodeExecuted[3] = Clock.getBytecodeNum();
 
-                if(Clock.getBytecodeNum() > 10000) {
+                if(tooMuchBytecode(Clock.getBytecodeNum())) {
                     System.out.println("WARNING: TOO MANY BYTECODES USED!!!");
                     printState();
                 }
@@ -61,6 +61,8 @@ public abstract class AbstractPlayer {
 
     protected abstract void initialize() throws GameActionException;
     protected abstract void step() throws GameActionException;
+
+    protected boolean tooMuchBytecode(int bytecodeCount) { return bytecodeCount > 10000; }
 
     protected void printState() {
         System.out.println("BUILD MANAGER EXECUTED: " + bytecodeExecuted[0]);

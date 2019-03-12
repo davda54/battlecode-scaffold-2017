@@ -69,4 +69,7 @@ public class ArchonPlayer extends AbstractPlayer {
         }
         if (target != null) navigation.navigateTo(target);
     }
+
+    @Override
+    protected boolean tooMuchBytecode(int bytecodeCount) { return bytecodeCount > 20000; }
 }

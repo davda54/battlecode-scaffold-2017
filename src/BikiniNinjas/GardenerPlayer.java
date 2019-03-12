@@ -371,5 +371,6 @@ public class GardenerPlayer extends AbstractPlayer {
 
         System.out.println("CURRENT STATE: " + state);
         System.out.println("FAVOURITE ORCHARD " + (favouriteOrchardLocation == null ? "null" : favouriteOrchardLocation));
+        System.out.println("PATIENCE: " + patience);
     }
 }

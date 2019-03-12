@@ -107,7 +107,7 @@ public class Utilities {
         Direction direction = initialDirection;
         float distance = rc.getType().strideRadius;
 
-        for(int c = 0; c < 100; c++) {
+        for(int c = 0; c < 15; c++) {
             if (rc.canMove(direction, distance)) break;
             if (Math.random() > 0.5f) direction = direction.rotateLeftDegrees(45 + (float)Math.random() * 90);
             else direction = direction.rotateRightDegrees(45 + (float)Math.random() * 90);
@@ -118,10 +118,10 @@ public class Utilities {
             if(rc.canMove(direction, distance)) break;
 
             direction = randomDirection();
-            distance *= 0.95;
+            distance *= 0.9;
         }
 
-        rc.move(direction, distance);
+        if(rc.canMove(direction, distance)) rc.move(direction, distance);
         return direction;
     }
 
@@ -183,10 +183,6 @@ public class Utilities {
 
     public static Team opponentTeam(RobotController rc) {
         return rc.getTeam() == Team.A ? Team.B : Team.A;
-    }
-
-    public static boolean intersects(MapLocation a, float r_a, MapLocation b, float r_b) {
-        return a.distanceSquaredTo(b) <= (r_a + r_b)*(r_a + r_b);
     }
 
     public static boolean isSomeoneStandingInLocation(RobotController rc, MapLocation location, float radius) {
