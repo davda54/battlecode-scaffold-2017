@@ -2,7 +2,6 @@ package BikiniNinjas;
 
 import battlecode.common.*;
 
-import javax.rmi.CORBA.Util;
 import java.util.*;
 
 public class ScoutPlayer extends AbstractPlayer {
@@ -24,40 +23,20 @@ public class ScoutPlayer extends AbstractPlayer {
 
     @Override
     protected void step() throws GameActionException {
-        boolean hasMoved = false;
-        MapLocation myLoc = rc.getLocation();
-        RobotInfo[] robots = rc.senseNearbyRobots();
-        ArrayList<MapLocation> dangLocs = new ArrayList<>();
-        for (RobotInfo ri : robots) {
-            if (ri.getType().canAttack()) {
-                MapLocation location = ri.location;
-                dangLocs.add(location);
-            }
-        }
 
-        if(dangLocs.size() > 2) {
-            float acc = 0f;
-            for (MapLocation l : dangLocs) {
-                float aFloat = myLoc.x - l.x;
-                acc = acc + aFloat;
-            }
-            float dx = acc;
-            float result = 0f;
-            for (MapLocation l : dangLocs) {
-                float aFloat = myLoc.y - l.y;
-                result = result + aFloat;
-            }
-            float dy = result;
-            Utilities.tryMove(rc, new Direction(dx,dy));
+        boolean hasMoved = false;
+
+        List<MapLocation> dangerousLocations = getDangerousLocations();
+        if(!dangerousLocations.isEmpty()) {
+            moveAwayFromEnemies(dangerousLocations);
             hasMoved = true;
         }
-
 
         updateTreeInfo(rc.senseNearbyTrees(-1, Team.NEUTRAL));
         Tuple<Integer, MapLocation> tree = nearestFruitfulTree();
 
         if(tree == null) {
-            if (!hasMoved)direction = Utilities.moveRandomly(rc, direction);
+            if(!hasMoved) direction = Utilities.moveRandomly(rc, direction);
         }
         else if(rc.canInteractWithTree(tree.item1)) {
             rc.shake(tree.item1);
@@ -87,6 +66,29 @@ public class ScoutPlayer extends AbstractPlayer {
             float localTreeDensity = (float) treeCoverage / (RobotType.SCOUT.sensorRadius * RobotType.SCOUT.sensorRadius);
             bc.addTreeDensitySample(localTreeDensity);
         }
+    }
+
+    private List<MapLocation> getDangerousLocations() {
+        RobotInfo[] robots = rc.senseNearbyRobots(7.0f, enemy);
+        ArrayList<MapLocation> dangLocs = new ArrayList<>();
+        for (RobotInfo ri : robots) {
+            if (ri.getType() == RobotType.SOLDIER || ri.getType() == RobotType.TANK) {
+                dangLocs.add(ri.location);
+            }
+        }
+
+        return dangLocs;
+    }
+
+    private void moveAwayFromEnemies(List<MapLocation> enemyLocations) throws GameActionException {
+        MapLocation away = new MapLocation(0.0f, 0.0f);
+        for (MapLocation l : enemyLocations) {
+            away = away.add(rc.getLocation().directionTo(l), 1 / rc.getLocation().distanceTo(l));
+
+        }
+
+        direction = new Direction(-away.x, -away.y);
+        Utilities.tryMove(rc, direction);
     }
 
     private Tuple<Integer, MapLocation> nearestFruitfulTree() {
