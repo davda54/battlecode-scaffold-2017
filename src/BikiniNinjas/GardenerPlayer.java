@@ -136,8 +136,21 @@ public class GardenerPlayer extends AbstractPlayer {
     }
 
     private void tryRecruitment() throws GameActionException {
-        if(isRecruiter && Math.random() < 0.01 && rc.canBuildRobot(RobotType.SOLDIER, recruitmentDirection)) {
-            bm.build(RobotType.SOLDIER, recruitmentDirection);
+        if(isRecruiter && Math.random() < 0.1) {
+            float treeDensity = bc.getTreeDensity();
+            System.out.println(treeDensity);
+            if (rc.canBuildRobot(RobotType.LUMBERJACK, recruitmentDirection)) {
+                bm.build(RobotType.LUMBERJACK, recruitmentDirection);
+            }
+            /*double rnd = Math.random();
+            if (treeDensity < rnd && rc.canBuildRobot(RobotType.SOLDIER, recruitmentDirection)) {
+                bm.build(RobotType.SOLDIER, recruitmentDirection);
+                return;
+            }
+            if (treeDensity >= rnd && rc.canBuildRobot(RobotType.LUMBERJACK, recruitmentDirection)) {
+                bm.build(RobotType.LUMBERJACK, recruitmentDirection);
+                return;
+            }*/
         }
     }
 

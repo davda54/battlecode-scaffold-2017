@@ -25,7 +25,10 @@ public class Broadcast {
     // ARCHON, GARDENER, LUMBERJACK, SOLDIER, TANK, SCOUT
     private final int[] COUNTS_BITS = {0, 8, 20, 32, 48, 56, 64};
 
-    private final int ORCHARD_LOCATIONS_OFFSET = 6;
+    private final int TREE_DENSITY_OFFSET = 6;
+    private final float TREE_GAMMA = 0.9f;
+
+    private final int ORCHARD_LOCATIONS_OFFSET = 7;
 
 
     public Broadcast(RobotController rc) throws GameActionException {
@@ -45,6 +48,18 @@ public class Broadcast {
     public MapLocation[] getLocations() {
         // TODO: implement
         return null;
+    }
+
+    public float getTreeDensity() throws GameActionException {
+        return rc.readBroadcastFloat(TREE_DENSITY_OFFSET);
+    }
+
+    public void addTreeDensitySample(float sampledDensity) throws GameActionException {
+        float currentDensity = rc.readBroadcastFloat(TREE_DENSITY_OFFSET);
+        float newDensity;
+        if (currentDensity == 0.0) newDensity = sampledDensity;
+        else newDensity = TREE_GAMMA * currentDensity + (1.0f - TREE_GAMMA) * sampledDensity;
+        rc.broadcastFloat(TREE_DENSITY_OFFSET, newDensity);
     }
 
     public void addOrchardLocations(ArrayList<MapLocation> locations) throws GameActionException {

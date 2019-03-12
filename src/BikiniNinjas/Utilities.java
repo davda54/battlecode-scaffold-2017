@@ -180,4 +180,8 @@ public class Utilities {
 
         return output;
     }
+
+    public static Team opponentTeam(RobotController rc) {
+        return rc.getTeam() == Team.A ? Team.B : Team.A;
+    }
 }

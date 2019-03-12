@@ -44,10 +44,10 @@ public abstract class AbstractPlayer {
                 step();
                 bytecodeExecuted[3] = Clock.getBytecodeNum();
 
-                if(Clock.getBytecodeNum() > 10000) {
+                /*if(Clock.getBytecodeNum() > 10000) {
                     System.out.println("WARNING: TOO MANY BYTECODES USED!!!");
                     printState();
-                }
+                }*/
                 Clock.yield();
 
             } catch (Exception e) {

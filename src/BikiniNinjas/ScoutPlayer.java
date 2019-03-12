@@ -10,6 +10,8 @@ public class ScoutPlayer extends AbstractPlayer {
     private Direction direction;
     private HashMap<Integer, MapLocation> fruitfulTrees;
 
+    private final int treeDensityUpdateRounds = 5;
+
     public ScoutPlayer(RobotController rc) throws GameActionException {
         super(rc);
     }
@@ -61,23 +63,29 @@ public class ScoutPlayer extends AbstractPlayer {
             rc.shake(tree.item1);
         }
         else {
-
             if(!hasMoved) Utilities.tryMove(rc, rc.getLocation().directionTo(tree.item2));
         }
     }
 
-    private void updateTreeInfo(TreeInfo[] newlySensedTrees) {
+    private void updateTreeInfo(TreeInfo[] newlySensedTrees) throws GameActionException {
+
+        double treeCoverage = 0.0;
         for(TreeInfo tree: newlySensedTrees) {
+            treeCoverage += tree.radius * tree.radius;
             if(tree.getContainedBullets() == 0) {
                 if(fruitfulTrees.containsKey(tree.ID)) {
                     fruitfulTrees.remove(tree.ID);
                 }
                 continue;
             }
-
             if(!fruitfulTrees.containsKey(tree.ID)) {
                 fruitfulTrees.put(tree.ID, tree.location);
             }
+        }
+
+        if (rc.getRoundNum() % treeDensityUpdateRounds == 0) {
+            float localTreeDensity = (float) treeCoverage / (RobotType.SCOUT.sensorRadius * RobotType.SCOUT.sensorRadius);
+            bc.addTreeDensitySample(localTreeDensity);
         }
     }
 
