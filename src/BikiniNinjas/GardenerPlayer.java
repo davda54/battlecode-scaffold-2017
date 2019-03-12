@@ -138,7 +138,6 @@ public class GardenerPlayer extends AbstractPlayer {
     private void tryRecruitment() throws GameActionException {
         if(isRecruiter && Math.random() < 0.1 && recruitmentPlaceHiddenTimeout == RECRUITMENT_PLACE_HIDDEN_TIMEOUT) {
             float treeDensity = bc.getTreeDensity();
-            System.out.println(treeDensity);
             if (rc.canBuildRobot(RobotType.LUMBERJACK, recruitmentDirection)) {
                 bm.build(RobotType.LUMBERJACK, recruitmentDirection);
             }
