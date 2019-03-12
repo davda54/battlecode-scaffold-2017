@@ -183,7 +183,7 @@ public class Navigation {
 
         if (orientation != null && Math.abs(orientation.degreesBetween(dir)) > 120) return false;
 
-        if (!rc.canMove(dir)) return false;
+        if (!rc.canMove(targetLocation)) return false;
         rc.move(targetLocation);
         avoidance = Avoidance.NONE;
 
