@@ -184,4 +184,12 @@ public class Utilities {
     public static Team opponentTeam(RobotController rc) {
         return rc.getTeam() == Team.A ? Team.B : Team.A;
     }
+
+    public static boolean intersects(MapLocation a, float r_a, MapLocation b, float r_b) {
+        return a.distanceSquaredTo(b) <= (r_a + r_b)*(r_a + r_b);
+    }
+
+    public static boolean isSomeoneStandingInLocation(RobotController rc, MapLocation location, float radius) {
+        return rc.senseNearbyRobots(location, radius, rc.getTeam()).length > 0;
+    }
 }
