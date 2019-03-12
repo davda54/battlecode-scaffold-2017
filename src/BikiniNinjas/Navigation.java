@@ -109,10 +109,14 @@ public class Navigation {
                 if((canMove && !couldMove) ||
                    (!canMove && couldMove)) {
                     couldMove = canMove;
-                    if (canMove) rightOrientations.add(o);
-                    else leftOrientations.add(lastOrientation);
-                    lastOrientation = o;
+                    if (canMove) {
+                        rightOrientations.add(o);
+                    }
+                    else {
+                        leftOrientations.add(lastOrientation);
+                    }
                 }
+                lastOrientation = o;
             }
 
             if (leftOrientations.isEmpty() && rightOrientations.isEmpty()) {
@@ -124,24 +128,24 @@ public class Navigation {
             Direction minOrientation = null;
             Avoidance memory = locationInMemory(rc.getLocation());
 
-            if (memory != Avoidance.LEFT) {
+            if (memory != Avoidance.RIGHT) {
                 for (Direction o : leftOrientations) {
                     float angle = Math.abs(o.radiansBetween(orientation));
                     if (angle < minAngle) {
                         minAngle = angle;
                         minOrientation = o;
-                        avoidance = Avoidance.LEFT;
+                        avoidance = Avoidance.RIGHT;
                     }
                 }
             }
 
-            if (memory != Avoidance.RIGHT) {
+            if (memory != Avoidance.LEFT) {
                 for (Direction o : rightOrientations) {
                     float angle = Math.abs(o.radiansBetween(orientation));
                     if (angle < minAngle) {
                         minAngle = angle;
                         minOrientation = o;
-                        avoidance = Avoidance.RIGHT;
+                        avoidance = Avoidance.LEFT;
                     }
                 }
             }
@@ -156,10 +160,6 @@ public class Navigation {
             rc.setIndicatorLine(rc.getLocation(), rc.getLocation().add(orientation, 4), 255, 255, 255);
             return;
         }
-
-        if (avoidance == Avoidance.LEFT) rc.setIndicatorDot(rc.getLocation(), 255, 0, 0);
-        if (avoidance == Avoidance.RIGHT) rc.setIndicatorDot(rc.getLocation(), 0, 0, 255);
-        if (avoidance == Avoidance.NONE) rc.setIndicatorDot(rc.getLocation(), 255, 255, 255);
 
         avoidanceCooldown--;
         if (!moveAroundObstacle()) {
@@ -198,9 +198,9 @@ public class Navigation {
 
             Direction newOrientation;
             if (avoidance == Avoidance.LEFT) {
-                newOrientation = orientation.rotateLeftDegrees(DEG_RESOLUTION * i - 90);
-            } else {
                 newOrientation = orientation.rotateRightDegrees(DEG_RESOLUTION * i - 90);
+            } else {
+                newOrientation = orientation.rotateLeftDegrees(DEG_RESOLUTION * i - 90);
             }
 
             if (rc.canMove(newOrientation)) {
