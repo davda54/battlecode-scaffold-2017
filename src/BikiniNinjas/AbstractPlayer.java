@@ -4,6 +4,7 @@ import battlecode.common.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Random;
 
 public abstract class AbstractPlayer {
 
@@ -12,7 +13,7 @@ public abstract class AbstractPlayer {
     protected Broadcast bc;
     protected BuildManager bm;
     protected Navigation navigation;
-
+    protected Random rnd;
     private final int BULLET_RESERVE = 500;
     private int[] bytecodeExecuted = new int[4];
 
@@ -22,6 +23,7 @@ public abstract class AbstractPlayer {
         this.bc = new Broadcast(rc);
         this.bm = new BuildManager(rc);
         this.navigation = new Navigation(rc);
+        this.rnd = new Random();
     }
 
     public void run() throws GameActionException {

@@ -2,22 +2,33 @@ package BikiniNinjas;
 
 import battlecode.common.*;
 
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.ArrayList;;
 import java.util.List;
 
 public class SoldierPlayer extends AbstractPlayer {
     MapLocation[] archonLocs;
-    int archonIndex = 0;
+    int archonIndex;
+    int searchTimeRemaining ;
+    State state ;
+
+    enum State {
+        REGROUP,
+        SEEK_AND_DESTROY
+    }
 
     public SoldierPlayer(RobotController rc) throws GameActionException {
         super(rc);
-        archonLocs = rc.getInitialArchonLocations(enemy);
+
     }
 
     @Override
     protected void initialize() throws GameActionException {
 
+        archonLocs = rc.getInitialArchonLocations(enemy);
+        state = State.REGROUP;
+        searchTimeRemaining = 0;
+
+        moveToNextArchon();
     }
 
     @Override
@@ -27,13 +38,23 @@ public class SoldierPlayer extends AbstractPlayer {
 
         // See if there are any nearby enemy robots
         RobotInfo[] robots = rc.senseNearbyRobots(-1, enemy);
-
+        ArrayList<RobotInfo> gardeners = new ArrayList<>();
+        for (RobotInfo r : robots) {
+            if (r.type.equals(RobotType.GARDENER)) {
+                gardeners.add(r);
+            }
+        }
+        RobotInfo robotToShoot = null;
         // If there are some...
         if (robots.length > 0) {
+            robotToShoot = robots[0];
+            if (gardeners.size() > 0) {
+                robotToShoot = gardeners.get(0);
+            }
             // And we have enough bullets, and haven't attacked yet this turn...
             if (rc.canFireSingleShot()) {
                 // ...Then fire a bullet in the direction of the enemy.
-                rc.fireSingleShot(rc.getLocation().directionTo(robots[0].location));
+                rc.fireSingleShot(rc.getLocation().directionTo(robotToShoot.location));
             }
         }
         //shooting other bots is preferred, otherwise shoot in direction of dangerous bullets
@@ -58,23 +79,78 @@ public class SoldierPlayer extends AbstractPlayer {
             float shootDirRads = acc / dangerousBullets.size();
             rc.firePentadShot(new Direction(shootDirRads));
         }
+        switch (state) {
+            case REGROUP:
+                if (rc.getLocation().distanceTo(archonLocs[archonIndex]) < 15) {
+                    searchTimeRemaining = 300;
+                    seekAndDestroy();
+                }
+                if (robotToShoot !=null){
+                    navigation.stopNavigation();
+                    combat(robotToShoot);
+                }
+                if (!navigation.isNavigating()){
+                    navigation.navigateTo(archonLocs[archonIndex]);
+                }
 
-        if (!navigation.isNavigating()) {
+                break;
+            case SEEK_AND_DESTROY:
+                searchTimeRemaining--;
+                if (searchTimeRemaining == 0) {
+                    if (robotToShoot == null) {
+                        moveToNextArchon();
+                    } else {
+                        combat(robotToShoot);
+                    }
 
-            MapLocation target = archonLocs[archonIndex];
-            navigation.navigateTo(target);
-        } else {
-            if (myLocation.distanceTo(archonLocs[archonIndex]) <= 15 && robots.length == 0) {
-                archonIndex = (archonIndex + 1) % archonLocs.length;
-                navigation.navigateTo(archonLocs[archonIndex]);
-            }
+                } else {
 
+                    if (!navigation.isNavigating()) {
+                        if (robotToShoot != null) {
+                            combat(robotToShoot);
+                        } else {
+                            seekAndDestroy();
+                        }
+                    }
 
+                }
+
+                break;
         }
         //TODO komunikace? (jeden soldier zaveli, jdeme na dalsiho archona, ostatni nasleduji...)
         //TODO attack/defense mod?
         //TODO Archon request defense?
     }
 
+    private void seekAndDestroy() throws GameActionException {
+
+        state = State.SEEK_AND_DESTROY;
+        double searchRadius = 100D;
+        MapLocation archonLoc = archonLocs[archonIndex];
+        float angle = (float) (rnd.nextDouble()*Math.PI * 2);
+        float dist = (float) (rnd.nextDouble()*searchRadius);
+        MapLocation loc = archonLoc.add(angle, dist);
+        navigation.navigateTo(loc);
+    }
+
+    private void combat(RobotInfo robotToShoot) throws GameActionException {
+        int coneAngle = 40;
+        int deviation = rnd.nextInt(2*coneAngle+1)-coneAngle;
+        Direction direction = rc.getLocation().directionTo(robotToShoot.location).rotateLeftDegrees((float) deviation);
+        if (rc.canMove(direction)) rc.move(direction);
+    }
+
+    private void moveToNextArchon() throws GameActionException {
+        state = State.REGROUP;
+        int currentTarget = bc.getCurretArchonIndex();
+        if (currentTarget == archonIndex) {
+            archonIndex = (archonIndex + 1) % archonLocs.length;
+            bc.setCurrentArchonIndex(archonIndex);
+        } else {
+            archonIndex = currentTarget;
+        }
+        navigation.navigateTo(archonLocs[archonIndex]);
+
+    }
 
 }

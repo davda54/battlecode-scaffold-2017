@@ -29,6 +29,7 @@ public class Broadcast {
     private final float TREE_GAMMA = 0.9f;
 
     private final int ORCHARD_LOCATIONS_OFFSET = 7;
+    private final int TARGET_INDEX = 200;
 
 
     public Broadcast(RobotController rc) throws GameActionException {
@@ -130,6 +131,7 @@ public class Broadcast {
         return new MapLocation(x, y);
     }
 
+
     public void takeIn(HashMap<RobotType, Integer> inactiveChildren) throws GameActionException {
 
         int currentWriteState = rc.readBroadcastInt(COUNTS_GLOBAL_OFFSET + COUNTS_DATA_WHICH);
@@ -163,6 +165,12 @@ public class Broadcast {
 
         rc.broadcast(dataIdx, bufferA);
         rc.broadcast(dataIdx + 1, bufferB);
+    }
+    public int getCurretArchonIndex() throws GameActionException {
+        return rc.readBroadcast(TARGET_INDEX);
+    }
+    public void setCurrentArchonIndex(int index) throws GameActionException {
+        rc.broadcastInt(TARGET_INDEX,index);
     }
 
     private int intFromBits(int buffer, int startIdx, int endIdx) {
