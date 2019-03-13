@@ -28,7 +28,7 @@ public class SoldierPlayer extends AbstractPlayer {
         state = State.REGROUP;
         searchTimeRemaining = 0;
 
-        moveToNextArchon();
+        moveToInitArchon();
     }
 
     @Override
@@ -86,10 +86,11 @@ public class SoldierPlayer extends AbstractPlayer {
                     seekAndDestroy();
                 }
                 if (robotToShoot != null) {
+                    rc.setIndicatorDot(robotToShoot.location,255,0,0);
                     navigation.stopNavigation();
                     combat(robotToShoot);
-                }
-                if (!navigation.isNavigating()) {
+                } else if
+                (!navigation.isNavigating()) {
                     navigation.navigateTo(archonLocs[archonIndex]);
                 }
 
@@ -125,7 +126,7 @@ public class SoldierPlayer extends AbstractPlayer {
     private void seekAndDestroy() throws GameActionException {
 
         state = State.SEEK_AND_DESTROY;
-        double searchRadius = 100D;
+        double searchRadius = 40D;
         MapLocation archonLoc = archonLocs[archonIndex];
         float angle = (float) (rnd.nextDouble() * Math.PI * 2);
         float dist = (float) (rnd.nextDouble() * searchRadius);
@@ -134,7 +135,7 @@ public class SoldierPlayer extends AbstractPlayer {
     }
 
     private void combat(RobotInfo robotToShoot) throws GameActionException {
-        int coneAngle = 40;
+        int coneAngle = 100;
         int deviation = rnd.nextInt(2 * coneAngle + 1) - coneAngle;
         Direction direction = rc.getLocation().directionTo(robotToShoot.location).rotateLeftDegrees((float) deviation);
         if (rc.canMove(direction) && !rc.hasMoved()) rc.move(direction);
@@ -152,5 +153,10 @@ public class SoldierPlayer extends AbstractPlayer {
         navigation.navigateTo(archonLocs[archonIndex]);
 
     }
+     private void moveToInitArchon() throws GameActionException {
+        int index =bc.getCurretArchonIndex();
+        archonIndex = index;
+        navigation.navigateTo(archonLocs[archonIndex]);
+     }
 
 }
