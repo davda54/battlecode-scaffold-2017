@@ -8,8 +8,8 @@ import java.util.List;
 public class SoldierPlayer extends AbstractPlayer {
     MapLocation[] archonLocs;
     int archonIndex;
-    int searchTimeRemaining ;
-    State state ;
+    int searchTimeRemaining;
+    State state;
 
     enum State {
         REGROUP,
@@ -85,11 +85,11 @@ public class SoldierPlayer extends AbstractPlayer {
                     searchTimeRemaining = 300;
                     seekAndDestroy();
                 }
-                if (robotToShoot !=null){
+                if (robotToShoot != null) {
                     navigation.stopNavigation();
                     combat(robotToShoot);
                 }
-                if (!navigation.isNavigating()){
+                if (!navigation.isNavigating()) {
                     navigation.navigateTo(archonLocs[archonIndex]);
                 }
 
@@ -105,12 +105,12 @@ public class SoldierPlayer extends AbstractPlayer {
 
                 } else {
 
-                    if (!navigation.isNavigating()) {
-                        if (robotToShoot != null) {
-                            combat(robotToShoot);
-                        } else {
+                    if (robotToShoot != null) {
+                        navigation.stopNavigation();
+                        combat(robotToShoot);
+                    } else {
+                        if (!navigation.isNavigating())
                             seekAndDestroy();
-                        }
                     }
 
                 }
@@ -127,17 +127,17 @@ public class SoldierPlayer extends AbstractPlayer {
         state = State.SEEK_AND_DESTROY;
         double searchRadius = 100D;
         MapLocation archonLoc = archonLocs[archonIndex];
-        float angle = (float) (rnd.nextDouble()*Math.PI * 2);
-        float dist = (float) (rnd.nextDouble()*searchRadius);
+        float angle = (float) (rnd.nextDouble() * Math.PI * 2);
+        float dist = (float) (rnd.nextDouble() * searchRadius);
         MapLocation loc = archonLoc.add(angle, dist);
         navigation.navigateTo(loc);
     }
 
     private void combat(RobotInfo robotToShoot) throws GameActionException {
         int coneAngle = 40;
-        int deviation = rnd.nextInt(2*coneAngle+1)-coneAngle;
+        int deviation = rnd.nextInt(2 * coneAngle + 1) - coneAngle;
         Direction direction = rc.getLocation().directionTo(robotToShoot.location).rotateLeftDegrees((float) deviation);
-        if (rc.canMove(direction)) rc.move(direction);
+        if (rc.canMove(direction) && !rc.hasMoved()) rc.move(direction);
     }
 
     private void moveToNextArchon() throws GameActionException {
