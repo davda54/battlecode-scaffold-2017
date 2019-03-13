@@ -3,6 +3,7 @@ package BikiniNinjas;
 import battlecode.common.*;
 import sun.reflect.generics.tree.Tree;
 
+import javax.swing.plaf.basic.BasicBorders;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map;
@@ -28,7 +29,7 @@ public class LumberjackPlayer extends AbstractPlayer {
     @Override
     protected void initialize() throws GameActionException {
         // role = (Math.random() < 0.5f ? Role.SPREADING : Role.REACHING);
-        role = Role.SPREADING;
+        role = Role.REACHING;
         targetTree = null;
         navigatingRounds = 0;
     }
@@ -38,16 +39,7 @@ public class LumberjackPlayer extends AbstractPlayer {
 
         RobotInfo nearestAttackingEnemy = nearestEnemy(true);
         if (nearestAttackingEnemy != null) {
-            rc.setIndicatorDot(nearestAttackingEnemy.location, 0, 255, 255);
-            float dist = rc.getLocation().distanceSquaredTo(nearestAttackingEnemy.location);
-            if (dist > 9) navigation.navigateToMoving(nearestAttackingEnemy.location);
-            else {
-                navigation.stopNavigation();
-                if (rc.canStrike()) {
-                    rc.strike();
-                    rc.setIndicatorDot(rc.getLocation(), 255, 0, 0);
-                }
-            }
+            attackingBehavior(nearestAttackingEnemy);
             return;
         }
 
@@ -57,33 +49,71 @@ public class LumberjackPlayer extends AbstractPlayer {
         }
 
         if (role == Role.REACHING) {
-            MapLocation nearestEnemySpot = nearestEnemySpot();
-            navigation.navigateToMoving(nearestEnemySpot);
-            MapLocation l = rc.getLocation();
-            MapLocation treeLocation = l.add(l.directionTo(nearestEnemySpot), 2);
-            if (rc.isLocationOccupiedByTree(treeLocation)) {
-                if (navigation.isNavigating()) navigation.stopNavigation();
-                targetTree = rc.senseTreeAtLocation(treeLocation);
-            }
+            reachingBehavior();
             return;
         }
 
         if (role == Role.SPREADING) {
-            TreeInfo nearestTree = nearestTree();
-            if (nearestTree == null) {
-                if (navigation.isNavigating() && navigatingRounds < navigatingPatiency) {
-                    navigatingRounds++;
-                    return;
-                }
-                navigation.navigateTo(rc.getLocation().add(Utilities.randomDirection(), 10));
+            spreadingBehavior();
+        }
+    }
+
+    private void attackingBehavior(RobotInfo enemy) throws GameActionException {
+        rc.setIndicatorDot(enemy.location, 0, 255, 255);
+        float dist = rc.getLocation().distanceSquaredTo(enemy.location);
+        if (dist > 9) {
+            navigation.navigateToMoving(enemy.location);
+            MapLocation l = rc.getLocation();
+            MapLocation treeLocation = l.add(l.directionTo(enemy.location), 2);
+            TreeInfo[] trees = rc.senseNearbyTrees(treeLocation, 1.0f, Utilities.opponentTeam(rc));
+            if (trees.length != 0) {
+                if (navigation.isNavigating()) navigation.stopNavigation();
+                if (rc.canChop(trees[0].ID)) rc.chop(trees[0].ID);
+            }
+        }
+        else {
+            navigation.stopNavigation();
+            if (rc.canStrike()) {
+                rc.strike();
+                rc.setIndicatorDot(rc.getLocation(), 255, 0, 0);
+            }
+        }
+    }
+
+    private void reachingBehavior() throws GameActionException {
+        MapLocation nearestEnemySpot = nearestEnemySpot();
+        rc.setIndicatorDot(nearestEnemySpot, 125, 125, 125);
+        navigation.navigateTo(nearestEnemySpot);
+        MapLocation l = rc.getLocation();
+        MapLocation treeLocation = l.add(l.directionTo(nearestEnemySpot), 2);
+        TreeInfo[] trees = rc.senseNearbyTrees(treeLocation, 1.0f, Team.NEUTRAL);
+        if (trees.length != 0) {
+            if (navigation.isNavigating()) navigation.stopNavigation();
+            targetTree = trees[0];
+            return;
+        }
+        trees = rc.senseNearbyTrees(treeLocation, 1.0f, Utilities.opponentTeam(rc));
+        if (trees.length != 0) {
+            if (navigation.isNavigating()) navigation.stopNavigation();
+            targetTree = trees[0];
+        }
+    }
+
+    private void spreadingBehavior() throws GameActionException {
+        TreeInfo nearestTree = nearestTree();
+        if (nearestTree == null) {
+            if (navigation.isNavigating() && navigatingRounds < navigatingPatiency) {
+                navigatingRounds++;
                 return;
             }
-            rc.setIndicatorDot(nearestTree.location, 0, 255, 0);
-            if (rc.canInteractWithTree(nearestTree.location)) {
-                targetTree = nearestTree;
-            } else {
-                navigation.navigateTo(nearestTree.location);
-            }
+            navigation.navigateTo(rc.getLocation().add(Utilities.randomDirection(), 10));
+            return;
+        }
+        rc.setIndicatorDot(nearestTree.location, 0, 255, 0);
+        if (rc.canInteractWithTree(nearestTree.location)) {
+            targetTree = nearestTree;
+        } else {
+            navigation.navigateTo(nearestTree.location);
         }
     }
 
@@ -129,8 +159,8 @@ public class LumberjackPlayer extends AbstractPlayer {
         RobotInfo minRobot = null;
 
         for (RobotInfo r : rc.senseNearbyRobots(-1, Utilities.opponentTeam(rc))) {
-            if ((attacking && (!r.getType().canAttack() || !rc.canMove(r.location))) ||
-                 r.getType() == RobotType.SCOUT &&
+            if (((attacking && (!r.getType().canAttack() || !rc.canMove(r.location))) ||
+                 r.getType() == RobotType.SCOUT) &&
                  r.getType() != RobotType.GARDENER) continue;
             float distance = r.getLocation().distanceSquaredTo(rc.getLocation());
             if (distance < minDist) {
@@ -138,6 +168,16 @@ public class LumberjackPlayer extends AbstractPlayer {
                 minRobot = r;
             }
         }
+
+        for (RobotInfo r : rc.senseNearbyRobots(2, Utilities.opponentTeam(rc))) {
+            if (r.getType() != RobotType.LUMBERJACK) continue;
+            float distance = r.getLocation().distanceSquaredTo(rc.getLocation());
+            if (distance < minDist) {
+                minDist = distance;
+                minRobot = r;
+            }
+        }
+
         return minRobot;
     }
 
