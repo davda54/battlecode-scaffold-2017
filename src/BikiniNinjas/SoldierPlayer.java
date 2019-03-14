@@ -11,6 +11,8 @@ public class SoldierPlayer extends AbstractPlayer {
     int searchTimeRemaining;
     State state;
 
+    boolean movingToFirstArchon;
+
     enum State {
         REGROUP,
         SEEK_AND_DESTROY
@@ -27,16 +29,19 @@ public class SoldierPlayer extends AbstractPlayer {
         archonLocs = rc.getInitialArchonLocations(enemy);
         state = State.REGROUP;
         searchTimeRemaining = 0;
-
-        moveToInitArchon();
+        movingToFirstArchon = false;
     }
 
     @Override
     protected void step() throws GameActionException {
 
+        if (!movingToFirstArchon) {
+            moveToInitArchon();
+            movingToFirstArchon = true;
+        }
+
         MapLocation myLocation = rc.getLocation();
 
-        // See if there are any nearby enemy robots
         RobotInfo[] robots = rc.senseNearbyRobots(-1, enemy);
         ArrayList<RobotInfo> gardeners = new ArrayList<>();
         for (RobotInfo r : robots) {
@@ -45,19 +50,15 @@ public class SoldierPlayer extends AbstractPlayer {
             }
         }
         RobotInfo robotToShoot = null;
-        // If there are some...
         if (robots.length > 0) {
             robotToShoot = robots[0];
             if (gardeners.size() > 0) {
                 robotToShoot = gardeners.get(0);
             }
-            // And we have enough bullets, and haven't attacked yet this turn...
             if (rc.canFireSingleShot()) {
-                // ...Then fire a bullet in the direction of the enemy.
                 rc.fireSingleShot(rc.getLocation().directionTo(robotToShoot.location));
             }
         }
-        //shooting other bots is preferred, otherwise shoot in direction of dangerous bullets
         double thresholdAngle = 15;
         BulletInfo[] bullets = rc.senseNearbyBullets();
         List<BulletInfo> list = new ArrayList<>();
@@ -69,7 +70,6 @@ public class SoldierPlayer extends AbstractPlayer {
         List<BulletInfo> dangerousBullets = list;
         int bulletCountThreshold = 15;
         if (bulletCountThreshold <= dangerousBullets.size() && rc.canFirePentadShot()) {
-            //average angle
             Float acc = 0f;
             for (BulletInfo b : dangerousBullets) {
                 Direction d = myLocation.directionTo(b.location);
