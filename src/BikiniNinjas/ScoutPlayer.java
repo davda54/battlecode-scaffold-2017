@@ -42,6 +42,9 @@ public class ScoutPlayer extends AbstractPlayer {
         else if(rc.canInteractWithTree(tree.item1)) {
             rc.shake(tree.item1);
         }
+        else if(rc.canSenseLocation(tree.item2) && !rc.canSenseTree(tree.item1)) {
+            fruitfulTrees.remove(tree.item1);
+        }
         else {
             if(!rc.hasMoved()) Utilities.tryMove(rc, rc.getLocation().directionTo(tree.item2));
         }
