@@ -311,17 +311,6 @@ public class GardenerPlayer extends AbstractPlayer {
         favouriteOrchardLocation = null;
     }
 
-    private ArrayList<RobotInfo> getNearbyGardeners() throws GameActionException {
-        RobotInfo[] robots = rc.senseNearbyRobots(-1, rc.getTeam());
-        ArrayList<RobotInfo> gardeners = new ArrayList<>();
-
-        for (RobotInfo robot : robots) {
-            if (robot.getType() == RobotType.GARDENER) gardeners.add(robot);
-        }
-
-        return gardeners;
-    }
-
     private void growTrees() {
         for (int i = 0; i < treesToBeBorn.size(); i++) {
             Tuple<Integer, Integer> idFrameTuple = treesToBeBorn.get(i);
