@@ -107,10 +107,10 @@ public class GardenerPlayer extends AbstractPlayer {
         movingCentre = Utilities.add(Utilities.scale(movingCentre, PATIENCY_GAMMA), Utilities.scale(rc.getLocation(), 1 - PATIENCY_GAMMA));
         currentMaxPatience = (int) (150 * Math.min(1.0f, movingCentre.distanceTo(rc.getLocation()) / (4 * RobotType.GARDENER.strideRadius)));
 
-        System.out.println(patience);
+       /* System.out.println(patience);
         System.out.println(currentMaxPatience);
         rc.setIndicatorDot(movingCentre, 125,125,125);
-
+*/
         if (patience++ > MAX_PATIENCE) {
             if (navigation.isNavigating()) {
                 navigation.stopNavigation();
