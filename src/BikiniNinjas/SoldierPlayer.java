@@ -73,7 +73,7 @@ public class SoldierPlayer extends AbstractPlayer {
                 else if (!navigation.isNavigating() && isCircleOccupiedByTrees(rc.getLocation(), 3)) {
                     // Utilities.moveRandomly(rc,new Direction(rnd.nextFloat()*2*(float) Math.PI));
 
-                    for (int c = 0; c < 50; c++) {
+                    for (int c = 0; c < 10; c++) {
                         Direction dir = Utilities.randomDirection();
                         float newCircleRadius = 2;
                         MapLocation newLocation = rc.getLocation().add(dir, (7.0f - newCircleRadius) * (float) Math.random());

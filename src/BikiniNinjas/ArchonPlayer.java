@@ -45,7 +45,7 @@ public class ArchonPlayer extends AbstractPlayer {
 
         for (int c = 0; c < 10; c++) {
             Direction spawnDir = Utilities.randomDirection();
-            if ((gardeners.size() == 0 || gardeners.get(0).getLocation().distanceSquaredTo(myLocation) > 16) &&
+            if ((gardeners.size() == 0 || gardeners.get(0).getLocation().distanceSquaredTo(myLocation) > 9) &&
                     rc.canHireGardener(spawnDir) && 3 * RobotType.GARDENER.bulletCost <= rc.getTeamBullets() &&
                     rc.getTreeCount() >= (bc.getCountOf(RobotType.GARDENER) - 1) * 6) {
                 bm.build(RobotType.GARDENER, spawnDir);
