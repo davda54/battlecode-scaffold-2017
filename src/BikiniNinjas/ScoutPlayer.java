@@ -11,7 +11,7 @@ public class ScoutPlayer extends AbstractPlayer {
 
     private final int treeDensityUpdateRounds = 5;
     private boolean isScared;
-    private final int MAX_CYCLES = 30;
+    private final int MAX_CYCLES = 20;
 
     public ScoutPlayer(RobotController rc) throws GameActionException {
         super(rc);
@@ -41,6 +41,9 @@ public class ScoutPlayer extends AbstractPlayer {
         }
         else if(rc.canInteractWithTree(tree.item1)) {
             rc.shake(tree.item1);
+        }
+        else if(rc.canSenseLocation(tree.item2) && !rc.canSenseTree(tree.item1)) {
+            fruitfulTrees.remove(tree.item1);
         }
         else {
             if(!rc.hasMoved()) Utilities.tryMove(rc, rc.getLocation().directionTo(tree.item2));

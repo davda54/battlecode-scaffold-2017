@@ -34,21 +34,24 @@ public class ArchonPlayer extends AbstractPlayer {
 
         Team myTeam = rc.getTeam();
         int treeCount = rc.senseNearbyTrees(TREE_SENSE_RADIUS, myTeam).length;
-        int gardenerCount = getNearbyGardeners().size();
-        MapLocation myLocation = rc.getLocation();
-        if(target != null) rc.setIndicatorDot(target, 125, 125, 125);
+        ArrayList<RobotInfo> gardeners = getNearbyGardeners();
 
-        if (treeCount + gardenerCount > 0) {
-            if (!navigation.isNavigating()) setRandomTarget(myLocation);
-        }
+        MapLocation myLocation = rc.getLocation();
 
         for (int c = 0; c < 10; c++) {
             Direction spawnDir = Utilities.randomDirection();
-            if (rc.canHireGardener(spawnDir) && 3 * RobotType.GARDENER.bulletCost <= rc.getTeamBullets() &&
+            if ((gardeners.size() == 0 || gardeners.get(0).getLocation().distanceSquaredTo(myLocation) > 9) &&
+                    rc.canHireGardener(spawnDir) && 4.0f / (1 + Math.exp(-0.3*bc.getCountOf(RobotType.GARDENER))) * RobotType.GARDENER.bulletCost <= rc.getTeamBullets() &&
                     rc.getTreeCount() >= (bc.getCountOf(RobotType.GARDENER) - 1) * 6) {
                 bm.build(RobotType.GARDENER, spawnDir);
                 break;
             }
+        }
+
+        if(target != null) rc.setIndicatorDot(target, 125, 125, 125);
+
+        if (treeCount + gardeners.size() > 0) {
+            if (!navigation.isNavigating()) setRandomTarget(myLocation);
         }
     }
 
@@ -63,7 +66,7 @@ public class ArchonPlayer extends AbstractPlayer {
             if (!isCircleOccupiedExceptByMyTreesAndThisRobot(newLocation, newCircleRadius)) {
                 target = newLocation;
                 break;
-		    }
+            }
         }
         if (target != null) {
             navigation.navigateTo(target);

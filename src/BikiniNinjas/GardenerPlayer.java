@@ -8,7 +8,6 @@ import java.util.Collections;
 public class GardenerPlayer extends AbstractPlayer {
 
     private enum State {
-        BUILDING_FIRST_SCOUT,
         FINDING_SPOT,
         PLANTING_TREES
     }
@@ -42,7 +41,7 @@ public class GardenerPlayer extends AbstractPlayer {
     @Override
     protected void initialize() throws GameActionException {
 
-        state = State.BUILDING_FIRST_SCOUT;
+        state = State.FINDING_SPOT;
         moveDirection = Utilities.randomDirection();
         patience = 0;
         currentMaxPatience = MAX_PATIENCE;
@@ -72,9 +71,9 @@ public class GardenerPlayer extends AbstractPlayer {
     @Override
     protected void step() throws GameActionException {
 
+        buildFirstScout();
+
         switch (state) {
-            case BUILDING_FIRST_SCOUT:
-                buildFirstScout();
             case FINDING_SPOT:
                 findSpot();
                 break;
@@ -92,16 +91,14 @@ public class GardenerPlayer extends AbstractPlayer {
     private void buildFirstScout() throws GameActionException {
         if (bc.getCountOf(RobotType.SCOUT) == 0) {
             Direction direction = directionTowardEnemy();
-            for (int i = 0; i < 36; i++) {
+            for (int i = 0; i < 10; i++) {
                 if (rc.canBuildRobot(RobotType.SCOUT, direction)) {
                     bm.build(RobotType.SCOUT, direction);
                     break;
                 }
-                direction = direction.rotateLeftDegrees(10);
+                direction = direction.rotateLeftDegrees(70);
             }
         }
-
-        state = State.FINDING_SPOT;
     }
 
     private void findSpot() throws GameActionException {
@@ -148,17 +145,24 @@ public class GardenerPlayer extends AbstractPlayer {
     }
 
     private void tryRecruitment() throws GameActionException {
-        if(isRecruiter && Math.random() < 0.1 && recruitmentPlaceHiddenTimeout == RECRUITMENT_PLACE_HIDDEN_TIMEOUT) {
-            float lumberjackProbability = bc.getTreeDensity() == 0.0f ? 0.0f : (bc.getCountOf(RobotType.LUMBERJACK) == 0 ? 1.0f : bc.getTreeDensity());
-            double rnd = Math.random();
+        int unitCount = bc.getCountOf(RobotType.LUMBERJACK) + bc.getCountOf(RobotType.SOLDIER) + bc.getCountOf(RobotType.TANK);
+        double recruitmentProbability = 0.2*Math.exp(-0.075 * unitCount);
+        if(isRecruiter && Math.random() < recruitmentProbability && recruitmentPlaceHiddenTimeout == RECRUITMENT_PLACE_HIDDEN_TIMEOUT) {
+            float lumberjackProbability;
+            if(bc.getCountOf(RobotType.SCOUT) == 0 && bc.getCountOf(RobotType.LUMBERJACK) == 0)
+                lumberjackProbability = 1.0f;
+            else if(bc.getTreeDensity() == 0.0f)
+                lumberjackProbability = 0.0f;
+            else if(bc.getCountOf(RobotType.LUMBERJACK) == 0)
+                lumberjackProbability = 1.0f;
+            else
+                lumberjackProbability = bc.getTreeDensity();
 
-            if (lumberjackProbability < rnd && rc.canBuildRobot(RobotType.SOLDIER, recruitmentDirection)) {
+            if (lumberjackProbability < Math.random() && rc.canBuildRobot(RobotType.SOLDIER, recruitmentDirection)) {
                 bm.build(RobotType.SOLDIER, recruitmentDirection);
-                return;
             }
-            if (lumberjackProbability >= rnd && rc.canBuildRobot(RobotType.LUMBERJACK, recruitmentDirection)) {
+            else if( rc.canBuildRobot(RobotType.LUMBERJACK, recruitmentDirection)) {
                 bm.build(RobotType.LUMBERJACK, recruitmentDirection);
-                return;
             }
         }
     }
