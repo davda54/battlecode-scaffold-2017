@@ -13,7 +13,10 @@ public class GardenerPlayer extends AbstractPlayer {
         PLANTING_TREES
     }
 
+    private static float PATIENCY_GAMMA = 0.9f;
     private static final int MAX_PATIENCE = 200;
+    private int currentMaxPatience;
+    private MapLocation movingCentre;
 
     private State state;
     private ArrayList<Direction> treeDirections;
@@ -42,6 +45,8 @@ public class GardenerPlayer extends AbstractPlayer {
         state = State.BUILDING_FIRST_SCOUT;
         moveDirection = Utilities.randomDirection();
         patience = 0;
+        currentMaxPatience = MAX_PATIENCE;
+        movingCentre = rc.getLocation();
         favouriteOrchardLocation = null;
         startedNavigation = false;
         haveNotified = false;
@@ -100,6 +105,15 @@ public class GardenerPlayer extends AbstractPlayer {
     }
 
     private void findSpot() throws GameActionException {
+        // RobotType.GARDENER.strideRadius;
+
+        movingCentre = Utilities.add(Utilities.scale(movingCentre, PATIENCY_GAMMA), Utilities.scale(rc.getLocation(), 1 - PATIENCY_GAMMA));
+        currentMaxPatience = (int) (150 * Math.min(1.0f, movingCentre.distanceTo(rc.getLocation()) / (4 * RobotType.GARDENER.strideRadius)));
+
+        System.out.println(patience);
+        System.out.println(currentMaxPatience);
+        rc.setIndicatorDot(movingCentre, 125,125,125);
+
         if (patience++ > MAX_PATIENCE) {
             if (navigation.isNavigating()) {
                 navigation.stopNavigation();
@@ -260,7 +274,7 @@ public class GardenerPlayer extends AbstractPlayer {
     }
 
     private void searchRandomly() throws GameActionException {
-        if ((!findingFirstOrchard || patience > 20) && possibleTreesCount(rc.getLocation()) >= 6 - patience / (MAX_PATIENCE/3)) {
+        if ((!findingFirstOrchard || patience > 20) && possibleTreesCount(rc.getLocation()) >= 6 - patience / (currentMaxPatience/3)) {
             state = State.PLANTING_TREES;
             step();
             return;

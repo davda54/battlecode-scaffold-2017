@@ -75,7 +75,7 @@ public abstract class AbstractPlayer {
     }
 
     private void donate() throws GameActionException {
-        if (rc.getTeamBullets() > BULLET_RESERVE) {
+        if (rc.getTeamBullets() > BULLET_RESERVE ) {
             float bulletDiff = rc.getTeamBullets() - BULLET_RESERVE;
             int victoryPointCount = (int) (bulletDiff/rc.getVictoryPointCost());
             rc.donate(victoryPointCount * rc.getVictoryPointCost());

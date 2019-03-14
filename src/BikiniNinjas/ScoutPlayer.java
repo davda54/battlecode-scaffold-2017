@@ -79,7 +79,7 @@ public class ScoutPlayer extends AbstractPlayer {
         RobotInfo[] robots = rc.senseNearbyRobots(8.0f, enemy);
         ArrayList<MapLocation> dangLocs = new ArrayList<>();
         for (RobotInfo ri : robots) {
-            if (ri.getType() == RobotType.SOLDIER || ri.getType() == RobotType.TANK) {
+            if (ri.getType() == RobotType.SOLDIER || ri.getType() == RobotType.TANK || ri.getType()==RobotType.LUMBERJACK) {
                 dangLocs.add(ri.location);
             }
         }
@@ -95,7 +95,9 @@ public class ScoutPlayer extends AbstractPlayer {
         }
 
         direction = new Direction(-away.x, -away.y);
-        Utilities.tryMove(rc, direction);
+//        float maxDeviation =  15;
+//        float deviation = rnd.nextFloat()*2*maxDeviation -maxDeviation;
+        Utilities.tryMove(rc, direction/*.rotateLeftRads(deviation)*/);
     }
 
     private Tuple<Integer, MapLocation> nearestFruitfulTree() {

@@ -188,4 +188,12 @@ public class Utilities {
     public static boolean isSomeoneStandingInLocation(RobotController rc, MapLocation location, float radius) {
         return rc.senseNearbyRobots(location, radius, rc.getTeam()).length > 0;
     }
+
+    public static MapLocation scale(MapLocation v, float scale) {
+        return new MapLocation(v.x * scale, v.y * scale);
+    }
+
+    public static MapLocation add(MapLocation v1, MapLocation v2) {
+        return new MapLocation(v1.x + v2.x, v1.y + v2.y);
+    }
 }

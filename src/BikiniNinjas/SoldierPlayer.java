@@ -115,7 +115,7 @@ public class SoldierPlayer extends AbstractPlayer {
         switch (state) {
             case REGROUP:
                 if (rc.getLocation().distanceTo(archonLocs[archonIndex]) < 15) {
-                    searchTimeRemaining = 300;
+                    searchTimeRemaining = 100;
                     seekAndDestroy();
                 }
                 if (robotToShoot != null) {
