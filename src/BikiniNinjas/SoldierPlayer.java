@@ -5,6 +5,7 @@ import battlecode.common.*;
 import java.util.ArrayList;;
 import java.util.List;
 
+//TODO: prioritize unit types
 public class SoldierPlayer extends AbstractPlayer {
     MapLocation[] archonLocs;
     int archonIndex;
