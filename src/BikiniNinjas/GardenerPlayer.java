@@ -137,16 +137,14 @@ public class GardenerPlayer extends AbstractPlayer {
 
     private void tryRecruitment() throws GameActionException {
         if(isRecruiter && Math.random() < 0.1 && recruitmentPlaceHiddenTimeout == RECRUITMENT_PLACE_HIDDEN_TIMEOUT) {
-            float treeDensity = bc.getTreeDensity();
-            /*if (rc.canBuildRobot(RobotType.LUMBERJACK, recruitmentDirection)) {
-                bm.build(RobotType.LUMBERJACK, recruitmentDirection);
-            }*/
+            float lumberjackProbability = bc.getTreeDensity() == 0.0f ? 0.0f : (bc.getCountOf(RobotType.LUMBERJACK) == 0 ? 1.0f : bc.getTreeDensity());
             double rnd = Math.random();
-            if (treeDensity < rnd && rc.canBuildRobot(RobotType.SOLDIER, recruitmentDirection)) {
+
+            if (lumberjackProbability < rnd && rc.canBuildRobot(RobotType.SOLDIER, recruitmentDirection)) {
                 bm.build(RobotType.SOLDIER, recruitmentDirection);
                 return;
             }
-            if (treeDensity >= rnd && rc.canBuildRobot(RobotType.LUMBERJACK, recruitmentDirection)) {
+            if (lumberjackProbability >= rnd && rc.canBuildRobot(RobotType.LUMBERJACK, recruitmentDirection)) {
                 bm.build(RobotType.LUMBERJACK, recruitmentDirection);
                 return;
             }
@@ -185,8 +183,10 @@ public class GardenerPlayer extends AbstractPlayer {
         MapLocation treeLocation = rc.getLocation().add(direction, 2.0f);
         MapLocation nextTreeLocation = rc.getLocation().add(direction, 4.0f);
         return rc.canSenseAllOfCircle(treeLocation, 1.0f)
+                && rc.onTheMap(treeLocation, 1.0f)
                 && !rc.isCircleOccupiedExceptByThisRobot(treeLocation, 1.0f)
                 && rc.canSenseAllOfCircle(nextTreeLocation, 1.0f)
+                && rc.onTheMap(nextTreeLocation, 1.0f)
                 && !rc.isCircleOccupiedExceptByThisRobot(nextTreeLocation, 1.0f);
     }
 
@@ -257,7 +257,7 @@ public class GardenerPlayer extends AbstractPlayer {
     }
 
     private void searchRandomly() throws GameActionException {
-        if ((!findingFirstOrchard || patience > 20) && possibleTreesCount(rc.getLocation()) >= 6 - patience / MAX_PATIENCE) {
+        if ((!findingFirstOrchard || patience > 20) && possibleTreesCount(rc.getLocation()) >= 6 - patience / (MAX_PATIENCE/3)) {
             state = State.PLANTING_TREES;
             step();
             return;

@@ -28,8 +28,8 @@ public class LumberjackPlayer extends AbstractPlayer {
 
     @Override
     protected void initialize() throws GameActionException {
-        // role = (Math.random() < 0.5f ? Role.SPREADING : Role.REACHING);
-        role = Role.REACHING;
+        float spreadingProbability = Math.min(1.0f / (bc.getCountOf(RobotType.LUMBERJACK)), 1.0f);
+        role = (Math.random() < spreadingProbability ? Role.SPREADING : Role.REACHING);
         targetTree = null;
         navigatingRounds = 0;
     }

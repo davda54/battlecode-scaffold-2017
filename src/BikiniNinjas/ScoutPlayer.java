@@ -23,28 +23,18 @@ public class ScoutPlayer extends AbstractPlayer {
         fruitfulTrees = new HashMap<>();
     }
 
-    private int[] bytecodes = new int[5];
-
     @Override
     protected void step() throws GameActionException {
 
         List<MapLocation> dangerousLocations = getDangerousLocations();
-
 
         isScared = !dangerousLocations.isEmpty();
         if(isScared) {
             moveAwayFromEnemies(dangerousLocations);
         }
 
-        bytecodes[0] = Clock.getBytecodeNum();
-
         updateTreeInfo(rc.senseNearbyTrees(-1, Team.NEUTRAL));
-
-        bytecodes[1] = Clock.getBytecodeNum();
-
         Tuple<Integer, MapLocation> tree = nearestFruitfulTree();
-
-        bytecodes[2] = Clock.getBytecodeNum();
 
         if(tree == null) {
             if(!rc.hasMoved()) direction = Utilities.moveRandomly(rc, direction);
@@ -73,17 +63,11 @@ public class ScoutPlayer extends AbstractPlayer {
             if(!fruitfulTrees.containsKey(tree.ID)) {
                 fruitfulTrees.put(tree.ID, tree.location);
             }
-
-            if(tree.getID() == newlySensedTrees[0].getID()) {
-                bytecodes[3] = Clock.getBytecodeNum();
-            }
         }
 
         if(newlySensedTrees.length > MAX_CYCLES) {
             treeCoverage = treeCoverage / MAX_CYCLES * newlySensedTrees.length;
         }
-
-        bytecodes[4] = Clock.getBytecodeNum();
 
         if (rc.getRoundNum() % treeDensityUpdateRounds == 0) {
             float localTreeDensity = (float) treeCoverage / (RobotType.SCOUT.sensorRadius * RobotType.SCOUT.sensorRadius);
@@ -140,6 +124,5 @@ public class ScoutPlayer extends AbstractPlayer {
     protected void printState() {
         super.printState();
         System.out.println("IS SCARED: " + isScared);
-        System.out.println(bytecodes[0] + ", " + bytecodes[1] + ", " + bytecodes[2] + ", " + bytecodes[3] + ", " + bytecodes[4]);
     }
 }
