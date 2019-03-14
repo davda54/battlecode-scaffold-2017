@@ -278,7 +278,7 @@ public class GardenerPlayer extends AbstractPlayer {
     }
 
     private void searchRandomly() throws GameActionException {
-        if ((!findingFirstOrchard || patience > 20) && possibleTreesCount(rc.getLocation()) >= 6 - patience / (currentMaxPatience/3)) {
+        if ((!findingFirstOrchard || patience > 20) && possibleTreesCount(rc.getLocation()) >= (currentMaxPatience == 0 ? 0 : 6 - patience / (currentMaxPatience/3))) {
             state = State.PLANTING_TREES;
             step();
             return;
