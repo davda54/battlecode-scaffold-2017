@@ -79,6 +79,7 @@ public class SoldierPlayer extends AbstractPlayer {
             float shootDirRads = acc / dangerousBullets.size();
             rc.firePentadShot(new Direction(shootDirRads));
         }
+
         switch (state) {
             case REGROUP:
                 if (rc.getLocation().distanceTo(archonLocs[archonIndex]) < 15) {
