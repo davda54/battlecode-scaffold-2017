@@ -10,12 +10,14 @@ public class SoldierPlayer extends AbstractPlayer {
     int archonIndex;
     int searchTimeRemaining;
     State state;
-
+    private final int BATCH_SIZE = 5;
     boolean movingToFirstArchon;
+    int activationSoldierCount;
 
     enum State {
         REGROUP,
-        SEEK_AND_DESTROY
+        SEEK_AND_DESTROY,
+        WAITING_FOR_BATCH
     }
 
     public SoldierPlayer(RobotController rc) throws GameActionException {
@@ -27,19 +29,25 @@ public class SoldierPlayer extends AbstractPlayer {
     protected void initialize() throws GameActionException {
 
         archonLocs = rc.getInitialArchonLocations(enemy);
-        state = State.REGROUP;
+        state = State.WAITING_FOR_BATCH;
         searchTimeRemaining = 0;
         movingToFirstArchon = false;
+        int soldierCount = bc.registerSoldier();
+        activationSoldierCount = soldierCount + BATCH_SIZE;
+        activationSoldierCount = activationSoldierCount - (activationSoldierCount % BATCH_SIZE);
     }
 
     @Override
     protected void step() throws GameActionException {
 
-        if (!movingToFirstArchon) {
-            moveToInitArchon();
-            movingToFirstArchon = true;
+        if(state == State.WAITING_FOR_BATCH){
+            if (activationSoldierCount<= bc.getSoldierCount()){
+                moveToInitArchon();
+            }else{
+                Utilities.moveRandomly(rc,new Direction(rnd.nextFloat()*2*(float) Math.PI));
+            }
         }
-
+        
         MapLocation myLocation = rc.getLocation();
 
         RobotInfo[] robots = rc.senseNearbyRobots(-1, enemy);
@@ -159,6 +167,7 @@ public class SoldierPlayer extends AbstractPlayer {
 
     }
      private void moveToInitArchon() throws GameActionException {
+        state = State.REGROUP;
         int index =bc.getCurretArchonIndex();
         archonIndex = index;
         navigation.navigateTo(archonLocs[archonIndex]);

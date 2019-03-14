@@ -30,7 +30,7 @@ public class Broadcast {
 
     private final int ORCHARD_LOCATIONS_OFFSET = 7;
     private final int TARGET_INDEX = 200;
-
+    private final int SOLDIER_INDEX = 201;
 
     public Broadcast(RobotController rc) throws GameActionException {
         this.rc = rc;
@@ -172,6 +172,17 @@ public class Broadcast {
     public void setCurrentArchonIndex(int index) throws GameActionException {
         rc.broadcastInt(TARGET_INDEX,index);
     }
+
+    public int registerSoldier() throws GameActionException {
+        int num =  rc.readBroadcastInt(SOLDIER_INDEX);
+        int newNum = num+1;
+        rc.broadcastInt(SOLDIER_INDEX,newNum);
+        return num;
+    }
+    public int getSoldierCount() throws GameActionException {
+        return rc.readBroadcastInt(SOLDIER_INDEX);
+    }
+
 
     private int intFromBits(int buffer, int startIdx, int endIdx) {
         return (buffer >> startIdx) & (2 * (endIdx - startIdx) - 1);
