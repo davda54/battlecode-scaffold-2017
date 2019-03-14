@@ -138,7 +138,11 @@ public class SoldierPlayer extends AbstractPlayer {
     private void combat(RobotInfo robotToShoot) throws GameActionException {
         int coneAngle = 100;
         int deviation = rnd.nextInt(2 * coneAngle + 1) - coneAngle;
-        Direction direction = rc.getLocation().directionTo(robotToShoot.location).rotateLeftDegrees((float) deviation);
+        Direction dirToMoveGeneral = rc.getLocation().directionTo(robotToShoot.location);
+        if(rc.getLocation().distanceTo(robotToShoot.location)<4.5f){
+           dirToMoveGeneral=  dirToMoveGeneral.opposite();
+        }
+        Direction direction = dirToMoveGeneral.rotateLeftDegrees((float) deviation);
         if (rc.canMove(direction) && !rc.hasMoved()) rc.move(direction);
     }
 
