@@ -11,7 +11,7 @@ public class ScoutPlayer extends AbstractPlayer {
 
     private final int treeDensityUpdateRounds = 5;
     private boolean isScared;
-    private final int MAX_CYCLES = 30;
+    private final int MAX_CYCLES = 20;
 
     public ScoutPlayer(RobotController rc) throws GameActionException {
         super(rc);

@@ -34,17 +34,19 @@ public class ArchonPlayer extends AbstractPlayer {
 
         Team myTeam = rc.getTeam();
         int treeCount = rc.senseNearbyTrees(TREE_SENSE_RADIUS, myTeam).length;
-        int gardenerCount = getNearbyGardeners().size();
+        ArrayList<RobotInfo> gardeners = getNearbyGardeners();
+
         MapLocation myLocation = rc.getLocation();
         if(target != null) rc.setIndicatorDot(target, 125, 125, 125);
 
-        if (treeCount + gardenerCount > 0) {
+        if (treeCount + gardeners.size() > 0) {
             if (!navigation.isNavigating()) setRandomTarget(myLocation);
         }
 
         for (int c = 0; c < 10; c++) {
             Direction spawnDir = Utilities.randomDirection();
-            if (rc.canHireGardener(spawnDir) && 3 * RobotType.GARDENER.bulletCost <= rc.getTeamBullets() &&
+            if (gardeners.get(0).getLocation().distanceSquaredTo(myLocation) > 16 &&
+                    rc.canHireGardener(spawnDir) && 3 * RobotType.GARDENER.bulletCost <= rc.getTeamBullets() &&
                     rc.getTreeCount() >= (bc.getCountOf(RobotType.GARDENER) - 1) * 6) {
                 bm.build(RobotType.GARDENER, spawnDir);
                 break;
