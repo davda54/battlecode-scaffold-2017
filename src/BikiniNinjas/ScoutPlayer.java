@@ -76,7 +76,7 @@ public class ScoutPlayer extends AbstractPlayer {
     }
 
     private List<MapLocation> getDangerousLocations() {
-        RobotInfo[] robots = rc.senseNearbyRobots(7.0f, enemy);
+        RobotInfo[] robots = rc.senseNearbyRobots(8.0f, enemy);
         ArrayList<MapLocation> dangLocs = new ArrayList<>();
         for (RobotInfo ri : robots) {
             if (ri.getType() == RobotType.SOLDIER || ri.getType() == RobotType.TANK) {
