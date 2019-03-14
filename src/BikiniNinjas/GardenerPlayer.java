@@ -82,8 +82,6 @@ public class GardenerPlayer extends AbstractPlayer {
                 if(!haveNotified) notifyPotentialLocations();
                 break;
         }
-
-
     }
 
     private void buildFirstScout() throws GameActionException {
@@ -152,7 +150,6 @@ public class GardenerPlayer extends AbstractPlayer {
     }
 
     private void updateRecruitmentState() throws GameActionException {
-        if(recruitmentDirection != null) rc.setIndicatorDot(rc.getLocation().add(recruitmentDirection, 2.0f), 0, 255, 255);
         if(!isRecruiter) return;
         if(recruitmentDirection != null) rc.setIndicatorDot(rc.getLocation().add(recruitmentDirection, 2.0f), 255, 255, 255);
 
@@ -181,7 +178,7 @@ public class GardenerPlayer extends AbstractPlayer {
 
     private boolean testRecruitmentDirection(Direction direction) throws GameActionException {
         MapLocation treeLocation = rc.getLocation().add(direction, 2.0f);
-        MapLocation nextTreeLocation = rc.getLocation().add(direction, 4.0f);
+        MapLocation nextTreeLocation = rc.getLocation().add(direction, 3.0f);
         return rc.canSenseAllOfCircle(treeLocation, 1.0f)
                 && rc.onTheMap(treeLocation, 1.0f)
                 && !rc.isCircleOccupiedExceptByThisRobot(treeLocation, 1.0f)
@@ -196,6 +193,12 @@ public class GardenerPlayer extends AbstractPlayer {
 
             if(recruitmentDirection != null && direction.equals(recruitmentDirection)) {
                 continue;
+            }
+
+            if(!isRecruiter && testRecruitmentDirection(direction)) {
+                isRecruiter = true;
+                recruitmentDirection = direction;
+                return;
             }
 
             if (rc.canPlantTree(direction) && !Utilities.isSomeoneStandingInLocation(rc, rc.getLocation().add(direction, 4.0f), 1.0f)) {
@@ -309,17 +312,6 @@ public class GardenerPlayer extends AbstractPlayer {
         }
 
         favouriteOrchardLocation = null;
-    }
-
-    private ArrayList<RobotInfo> getNearbyGardeners() throws GameActionException {
-        RobotInfo[] robots = rc.senseNearbyRobots(-1, rc.getTeam());
-        ArrayList<RobotInfo> gardeners = new ArrayList<>();
-
-        for (RobotInfo robot : robots) {
-            if (robot.getType() == RobotType.GARDENER) gardeners.add(robot);
-        }
-
-        return gardeners;
     }
 
     private void growTrees() {

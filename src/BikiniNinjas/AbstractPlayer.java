@@ -89,4 +89,15 @@ public abstract class AbstractPlayer {
         return rc.getLocation().directionTo(archonLocations[mostDistantArchonIndex]);
     }
 
+    protected ArrayList<RobotInfo> getNearbyGardeners() throws GameActionException {
+        RobotInfo[] robots = rc.senseNearbyRobots(-1, rc.getTeam());
+        ArrayList<RobotInfo> gardeners = new ArrayList<>();
+
+        for (RobotInfo robot : robots) {
+            if (robot.getType() == RobotType.GARDENER) gardeners.add(robot);
+        }
+
+        return gardeners;
+    }
+
 }

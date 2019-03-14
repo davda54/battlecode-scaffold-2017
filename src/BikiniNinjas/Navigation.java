@@ -90,6 +90,11 @@ public class Navigation {
 
         if (moveDirectly()) return;
 
+        if(avoidanceCooldown < 0) {
+            stopNavigation(StopFlag.OUT_OF_PATIENCE);
+            return;
+        }
+
         if (/*avoidanceCooldown <= 0 &&*/ avoidance == Avoidance.NONE) {
             avoidanceCooldown = AVOIDANCE_COOLDOWN;
             orientation = dirToTarget;
